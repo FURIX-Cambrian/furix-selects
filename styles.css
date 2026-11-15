@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    FURIX SELECTS — local contact sheet
    ============================================================ */
 
@@ -4894,4 +4894,148 @@ input[type="range"]::-moz-range-thumb {
 #wm-family:focus {
   outline: none;
   border-color: var(--gold-line);
+}
+
+/* ============================================================
+   v3.8 导出弹窗：左预览 / 右选项（参考 LR 的排布）
+   ============================================================ */
+
+.export-modal {
+  width: min(1080px, 100%);
+  height: min(880px, calc(100vh - 40px));
+}
+
+.export-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 412px;
+  gap: 22px;
+  flex: 1;
+  min-height: 0;
+  padding: 0 25px 18px;
+}
+
+.export-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 0;
+}
+
+.export-preview-frame {
+  position: relative;
+  flex: 1;
+  min-height: 240px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: #0c0d0f;
+}
+
+.export-preview-frame canvas {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: calc(100% - 26px);
+  max-height: calc(100% - 26px);
+  border-radius: 2px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+
+.export-preview-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-height: 14px;
+  font-size: 9.5px;
+  color: var(--faint);
+}
+
+.export-preview-meta strong {
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.export-preview .field-help {
+  margin: 0;
+}
+
+.export-options {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #35373c transparent;
+}
+
+.export-options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.export-options::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: #35373c;
+}
+
+.wm-check-2 {
+  margin-top: 12px;
+}
+
+.collide-modal {
+  width: min(540px, 100%);
+}
+
+.collide-modal .foot-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.collide-modal .foot-actions {
+  flex: 0 0 auto;
+}
+
+.collide-modal .foot-actions .btn,
+.collide-modal .foot-actions .text-btn {
+  white-space: nowrap;
+}
+
+.collide-text {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.collide-sample {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.016);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.collide-sample:empty {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .export-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-preview-frame {
+    min-height: 210px;
+  }
+}
+.foot-hint.is-danger {
+  color: #e0796a;
 }

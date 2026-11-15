@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    FURIX SELECTS — application
    ============================================================ */
 
@@ -392,6 +392,16 @@
     exportXmp: $("#export-xmp"),
     exportFootHint: $("#export-foot-hint"),
     exportZip: $("#export-zip"),
+    exportCollision: $("#export-collision"),
+    exportPreviewName: $("#export-preview-name"),
+    exportPreviewDims: $("#export-preview-dims"),
+    collideModal: $("#collide-modal"),
+    collideText: $("#collide-text"),
+    collideSample: $("#collide-sample"),
+    collideHint: $("#collide-hint"),
+    collideOverwrite: $("#collide-overwrite"),
+    collideSuffix: $("#collide-suffix"),
+    collideCancel: $("#collide-cancel"),
     exportCancel: $("#export-cancel"),
     exportGo: $("#export-go"),
     exportProgress: $("#export-progress"),
@@ -403,8 +413,11 @@
     exportStop: $("#export-stop"),
     exportDone: $("#export-done"),
     exportFailures: $("#export-failures"),
-    wmEnable: $("#wm-enable"),
-    wmPanel: $("#wm-panel"),
+    wmTextOn: $("#wm-text-on"),
+    wmTextPanel: $("#wm-text-panel"),
+    wmLogoOn: $("#wm-logo-on"),
+    wmLogoPanel: $("#wm-logo-panel"),
+    wmGateNote: $("#wm-gate-note"),
     wmText: $("#wm-text"),
     wmAnchor: $("#wm-anchor"),
     wmSize: $("#wm-size"),
@@ -445,6 +458,7 @@
     scope: "selected",
     mode: "copy",
     naming: "original",
+    collision: "ask",
     busy: false,
     cancel: false,
     lastCount: 0
@@ -7928,6 +7942,8 @@
 
   const wm = {
     enabled: false,
+    textOn: true,
+    logoOn: false,
     text: "",
     color: "#ffffff",
     opacity: 70,
@@ -7973,7 +7989,10 @@
         12
       );
       wm.logoOpacity = F.clamp(Number(saved.logoOpacity) || 85, 10, 100);
-      wm.enabled = !!saved.enabled;
+      wm.textOn =
+        saved.textOn === undefined ? !!saved.enabled : !!saved.textOn;
+      wm.logoOn = !!saved.logoOn;
+      wm.enabled = wm.textOn || wm.logoOn;
     } catch (err) {
       /* ignore */
     }
@@ -7985,6 +8004,8 @@
         WM_KEY,
         JSON.stringify({
           enabled: wm.enabled,
+          textOn: wm.textOn,
+          logoOn: wm.logoOn,
           text: wm.text,
           color: wm.color,
           opacity: wm.opacity,
@@ -8005,8 +8026,22 @@
     }
   }
 
+  function wmRefreshGate() {
+    wm.enabled = !!(wm.textOn || wm.logoOn);
+    const parts = [];
+    if (wm.textOn) parts.push(String(wm.text || "").trim() ? "文字" : "文字（还没填内容）");
+    if (wm.logoOn) parts.push(wm.logo ? "图片" : "图片（还没选 logo）");
+    if (el.wmGateNote) {
+      el.wmGateNote.textContent = parts.length ? parts.join(" + ") : "不加水印";
+    }
+  }
+
   function wmSyncInputs() {
-    el.wmEnable.checked = wm.enabled;
+    wmRefreshGate();
+    el.wmTextOn.checked = wm.textOn;
+    el.wmLogoOn.checked = wm.logoOn;
+    el.wmTextPanel.hidden = !wm.textOn;
+    el.wmLogoPanel.hidden = !wm.logoOn;
     el.wmText.value = wm.text;
     el.wmSize.value = wm.fontSize;
     el.wmSizeVal.textContent = wm.fontSize + "%";
@@ -8031,7 +8066,6 @@
     $$("#wm-logo-anchor button").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.anchor === wm.logoAnchor);
     });
-    el.wmPanel.hidden = !wm.enabled;
   }
 
   function cssFamily(name) {
@@ -8048,7 +8082,7 @@
 
   function wmOptions() {
     return {
-      text: wm.text,
+      text: wm.textOn ? wm.text : "",
       color: wm.color,
       opacity: wm.opacity,
       fontSize: wm.fontSize,
@@ -8056,7 +8090,7 @@
       anchor: wm.anchor,
       fontFamily: wmFontStack(),
       fontWeight: wm.weight,
-      logo: wm.logo,
+      logo: wm.logoOn && wm.logo ? wm.logo : null,
       logoSize: wm.logoSize,
       logoAnchor: wm.logoAnchor,
       logoInset: wm.logoInset,
@@ -8112,7 +8146,7 @@
       });
       el.convertOptions.hidden = false;
     }
-    if (on) scheduleWmPreview();
+    scheduleWmPreview();
   }
 
   function scheduleWmPreview() {
@@ -8152,19 +8186,21 @@
   }
 
   async function renderWmPreview() {
-    if (!el.wmPreview || !wm.enabled) return;
+    if (!el.wmPreview) return;
     const canvas = el.wmPreview;
+    const frame = canvas.parentElement;
+    // 预览按左栏实际可用尺寸出图：1:1 像素，缩放后不糊
+    const availW = Math.max(160, Math.round((frame && frame.clientWidth ? frame.clientWidth : 640) - 34));
+    const availH = Math.max(120, Math.round((frame && frame.clientHeight ? frame.clientHeight : 460) - 34));
     const ctx = canvas.getContext("2d");
-    const maxW = 640;
-    const maxH = 400;
     const photo = wmPreviewPhoto();
     const bitmap = photo ? await wmBitmapFor(photo) : null;
     let ratio = 3 / 2;
     if (bitmap && bitmap.width && bitmap.height) ratio = bitmap.width / bitmap.height;
-    let width = maxW;
+    let width = availW;
     let height = Math.round(width / ratio);
-    if (height > maxH) {
-      height = maxH;
+    if (height > availH) {
+      height = availH;
       width = Math.round(height * ratio);
     }
     canvas.width = Math.max(40, width);
@@ -8200,12 +8236,32 @@
       ctx.textBaseline = "alphabetic";
       ctx.fillText("样片示意", 12, 18);
     }
-    F.drawWatermark(ctx, canvas.width, canvas.height, wmOptions());
+    if (wm.enabled) F.drawWatermark(ctx, canvas.width, canvas.height, wmOptions());
     const photos = exportPhotos(ex.scope);
     const copyOnly = photos.filter((item) => !item.previewable || item.isRaw).length;
-    el.wmNote.textContent = copyOnly
-      ? "有 " + copyOnly + " 张（RAW 或无法解码）会按原图复制，不加印章。"
-      : "预览用当前范围里第一张照片，尺寸与实际导出的比例一致。";
+    if (el.exportPreviewName) {
+      el.exportPreviewName.textContent = photo ? photo.name : "没有可预览的照片";
+    }
+    if (el.exportPreviewDims) {
+      el.exportPreviewDims.textContent = bitmap
+        ? bitmap.width + " × " + bitmap.height
+        : photo
+          ? "RAW / 无法解码"
+          : "";
+    }
+    const wmDesc = wm.enabled
+      ? wm.textOn && wm.logoOn
+        ? "文字 + 图片双水印"
+        : wm.textOn
+          ? "文字水印"
+          : "图片水印"
+      : "不加水印";
+    el.wmNote.textContent =
+      (copyOnly
+        ? "有 " + copyOnly + " 张（RAW 或无法解码）会按原图复制，不加印章。"
+        : "预览用当前范围里第一张照片，比例与实际导出一致。") +
+      " · " +
+      wmDesc;
   }
 
   async function pickWmLogo(file) {
@@ -8264,6 +8320,7 @@
   function closeExport() {
     if (ex.busy) return;
     el.exportModal.hidden = true;
+    if (el.collideModal) el.collideModal.hidden = true;
     resetExportOverlay();
     document.body.classList.remove("modal-open");
     if (state.view === "grid") el.btnExport.focus({ preventScroll: true });
@@ -8302,6 +8359,9 @@
     });
     el.convertOptions.hidden = ex.mode === "copy";
     el.exportNaming.value = ex.naming;
+    $$("#export-collision button").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.collision === (ex.collision || "ask"));
+    });
     const prefixDisabled = ex.naming !== "prefix-seq";
     el.exportPrefix.disabled = prefixDisabled;
     el.prefixField.classList.toggle("is-disabled", prefixDisabled);
@@ -8331,19 +8391,33 @@
       rotatedCount && !wm.enabled && ex.mode === "copy"
         ? " · " + rotatedCount + " 张有旋转，复制模式不改像素（XMP 里写了方向）"
         : "";
+    const sizeLabel =
+      el.exportSize.value === "0" ? "原图尺寸（不缩放）" : "长边 " + el.exportSize.value + " px";
+    const wmLabel = wm.textOn && wm.logoOn
+      ? "双水印（文字 + 图片）"
+      : wm.textOn
+        ? "文字水印"
+        : "图片水印";
+    const collisionLabel =
+      ex.collision === "overwrite"
+        ? " · 同名覆盖"
+        : ex.collision === "skip"
+          ? " · 同名跳过"
+          : ex.collision === "suffix"
+            ? " · 同名加后缀"
+            : " · 同名会先问你";
     el.exportFootHint.textContent =
       (wm.enabled
-        ? "加水印导出 JPEG · " +
-          (el.exportSize.value === "0" ? "保持原尺寸" : "长边 " + el.exportSize.value + " px") +
-          " · 质量 " + el.exportQuality.value +
+        ? wmLabel + " 导出 JPEG · " + sizeLabel + " · 质量 " + el.exportQuality.value +
           (wmCopy ? " · " + wmCopy + " 张无法加水印（原图复制）" : "")
         : (ex.mode === "copy"
             ? "复制模式保留原始文件与画质"
-            : (el.exportSize.value === "0" ? "保持原尺寸" : "长边 " + el.exportSize.value + " px") +
-              " · 质量 " + el.exportQuality.value) +
+            : sizeLabel + " · 质量 " + el.exportQuality.value) +
           (ex.mode !== "copy" && rawCount
             ? " · " + rawCount + " 张 RAW 按原件复制"
-            : "")) + rotateNote;
+            : "")) +
+      collisionLabel +
+      rotateNote;
     el.exportZip.classList.toggle("hidden", !hasPicker);
   }
 
@@ -8352,13 +8426,16 @@
   }
 
   function readExportConfig() {
+    const mark = wmOptions();
+    const hasMark = !!(String(mark.text || "").trim() || mark.logo);
     return {
       mode: wm.enabled ? "jpeg" : ex.mode,
-      watermark: wm.enabled ? wmOptions() : null,
+      watermark: wm.enabled && hasMark ? mark : null,
       naming: ex.naming,
       prefix: F.sanitizeFileName(el.exportPrefix.value || "FURIX", "FURIX"),
       maxEdge: Number(el.exportSize.value) || 0,
       quality: Number(el.exportQuality.value) || 92,
+      collision: ex.collision,
       subfolders: el.exportSubfolders.checked,
       xmp: el.exportXmp.checked
     };
@@ -8417,6 +8494,120 @@
     if (flag === "pick") return "留用";
     if (flag === "reject") return "淘汰";
     return "待定";
+  }
+
+  // 按同名文件策略决定最终文件名；返回 null 表示这张跳过
+  async function resolveExportName(dir, prepared, used, keyPrefix, policy) {
+    const clean = F.sanitizeFileName(prepared.name, "photo");
+    const base = F.baseName(clean);
+    const ext = clean.slice(base.length);
+    const prefix = keyPrefix || "";
+    const key = (name) => (prefix + name).toLowerCase();
+    const mode = policy === "overwrite" || policy === "skip" ? policy : "suffix";
+    let candidate = clean;
+    if (!used.has(key(candidate))) {
+      const exists = await fileExists(dir, candidate);
+      if (!exists || mode === "overwrite") {
+        used.add(key(candidate));
+        return candidate;
+      }
+      if (mode === "skip") return null;
+    }
+    let n = 2;
+    while (used.has(key(candidate)) || (await fileExists(dir, candidate))) {
+      candidate = base + "-" + n + ext;
+      n += 1;
+      if (n > 9999) throw new Error("无法生成不重复的文件名");
+    }
+    used.add(key(candidate));
+    return candidate;
+  }
+
+  // 导出前先探一遍目标文件夹，统计会撞名的文件
+  function exportExtension(photo, config) {
+    const fallback = photo.ext ? "." + photo.ext : "";
+    if (config.mode === "copy") return fallback;
+    if (config.watermark) return ".jpg";
+    if (!photo.previewable || photo.isRaw) return fallback;
+    return config.mode === "webp" ? ".webp" : ".jpg";
+  }
+
+  async function scanCollisions(dest, photos, config) {
+    const dirs = new Map();
+    async function dirFor(sub) {
+      if (!sub) return dest;
+      if (dirs.has(sub)) return dirs.get(sub);
+      let dir = null;
+      try {
+        dir = await dest.getDirectoryHandle(sub, { create: false });
+      } catch (err) {
+        dir = null;
+      }
+      dirs.set(sub, dir);
+      return dir;
+    }
+    const conflicts = [];
+    const seen = new Set();
+    for (let i = 0; i < photos.length; i += 1) {
+      const photo = photos[i];
+      const sub = config.subfolders ? flagFolder(getMeta(photo).flag) : "";
+      const name = exportFileName(photo, i, exportExtension(photo, config), config);
+      const key = (sub ? sub + "/" : "") + name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const dir = await dirFor(sub);
+      if (!dir) continue;
+      if (await fileExists(dir, name)) conflicts.push(name);
+    }
+    return conflicts;
+  }
+
+  async function destinationIsSource(dest) {
+    if (!dest || !state.folderHandle) return false;
+    try {
+      if (typeof dest.isSameEntry === "function") {
+        return await dest.isSameEntry(state.folderHandle);
+      }
+    } catch (err) {
+      /* 老浏览器没有 isSameEntry */
+    }
+    return !!(state.folderName && dest.name === state.folderName);
+  }
+
+  function askCollision(conflicts, sameFolder) {
+    return new Promise((resolve) => {
+      const list = conflicts.slice(0, 6).join("\n");
+      el.collideText.textContent =
+        "目标文件夹里已经有 " +
+        conflicts.length +
+        " 个同名文件。覆盖会直接替换它们，另存为副本会加 -2、-3 编号。";
+      el.collideSample.textContent =
+        conflicts.length > 6 ? list + "\n…还有 " + (conflicts.length - 6) + " 个" : list;
+      el.collideHint.textContent = sameFolder
+        ? "这是原图所在的文件夹，覆盖会改动原图"
+        : "覆盖会直接替换同名文件";
+      el.collideHint.classList.toggle("is-danger", sameFolder);
+      el.collideModal.hidden = false;
+      const finish = (value) => {
+        el.collideModal.hidden = true;
+        el.collideOverwrite.removeEventListener("click", onOverwrite);
+        el.collideSuffix.removeEventListener("click", onSuffix);
+        el.collideCancel.removeEventListener("click", onCancel);
+        el.collideModal.removeEventListener("click", onBackdrop);
+        resolve(value);
+      };
+      const onOverwrite = () => finish("overwrite");
+      const onSuffix = () => finish("suffix");
+      const onCancel = () => finish("cancel");
+      const onBackdrop = (event) => {
+        if (event.target === el.collideModal) finish("cancel");
+      };
+      el.collideOverwrite.addEventListener("click", onOverwrite);
+      el.collideSuffix.addEventListener("click", onSuffix);
+      el.collideCancel.addEventListener("click", onCancel);
+      el.collideModal.addEventListener("click", onBackdrop);
+      requestAnimationFrame(() => el.collideSuffix.focus({ preventScroll: true }));
+    });
   }
 
   async function prepareExportFile(photo, index, config) {
@@ -8508,8 +8699,9 @@
     requestAnimationFrame(() => el.exportDone.focus({ preventScroll: true }));
   }
 
-  async function runDirectoryExport(dest, photos) {
+  async function runDirectoryExport(dest, photos, collisionPolicy) {
     const config = readExportConfig();
+    if (collisionPolicy) config.collision = collisionPolicy;
     const total = photos.length;
     const used = new Set();
     const dirCache = new Map();
@@ -8517,6 +8709,7 @@
     let written = 0;
     let sidecars = 0;
     let fallback = 0;
+    let skipped = 0;
 
     beginExportRun("正在导出…", "0 / " + total);
 
@@ -8537,12 +8730,22 @@
         const dir = await getDir(sub);
         const prepared = await prepareExportFile(photo, i, config);
         if (prepared.copiedFallback) fallback += 1;
-        const finalName = await uniqueName(
+        const finalName = await resolveExportName(
           dir,
-          prepared.name,
+          prepared,
           used,
-          sub ? sub + "/" : ""
+          sub ? sub + "/" : "",
+          config.collision
         );
+        if (!finalName) {
+          skipped += 1;
+          setExportProgress(
+            (i + 1) / total * 0.98,
+            i + 1 + " / " + total + " · 已跳过同名文件",
+            "正在写入…"
+          );
+          continue;
+        }
         await writeBlob(dir, finalName, prepared.blob);
         written += 1;
         if (config.xmp) {
@@ -8582,7 +8785,8 @@
       written +
       " 张已写入" +
       (sidecars ? " · " + sidecars + " 个 XMP" : "") +
-      (fallback ? " · " + fallback + " 张原件复制" : "");
+      (fallback ? " · " + fallback + " 张原件复制" : "") +
+      (skipped ? " · " + skipped + " 张因同名跳过" : "");
     const ok = written > 0 || failures.length === 0;
     finishExportRun({
       ok: ok,
@@ -8593,7 +8797,11 @@
         : "导出失败",
       sub: detail + (failures.length ? " · " + failures.length + " 个失败" : ""),
       failures: failures,
-      toast: ok ? "已导出 " + written + " 张到目标文件夹。" : "没有文件成功写入。"
+      toast: ok
+        ? written
+          ? "已导出 " + written + " 张到目标文件夹。"
+          : "全部同名，已跳过，没有写入文件。"
+        : "没有文件成功写入。"
     });
   }
 
@@ -8752,7 +8960,31 @@
       runZipExport(photos);
       return;
     }
-    runDirectoryExport(dest, photos).catch((err) => {
+    let policy = ex.collision || "ask";
+    if (policy === "ask") {
+      let conflicts = [];
+      try {
+        if (photos.length > 200) {
+          toast("正在检查目标文件夹里的同名文件…", "success", 2200);
+        }
+        conflicts = await scanCollisions(dest, photos, readExportConfig());
+      } catch (err) {
+        conflicts = [];
+      }
+      if (conflicts.length) {
+        const sameFolder = await destinationIsSource(dest);
+        const choice = await askCollision(conflicts, sameFolder);
+        if (choice === "cancel") {
+          updateExportSummary();
+          toast("已取消导出。", "success", 2600);
+          return;
+        }
+        policy = choice;
+      } else {
+        policy = "suffix";
+      }
+    }
+    runDirectoryExport(dest, photos, policy).catch((err) => {
       finishExportRun({
         ok: false,
         title: "导出失败",
@@ -9688,6 +9920,15 @@
     });
     el.exportSize.addEventListener("change", updateExportSummary);
     el.exportGo.addEventListener("click", handleExportGo);
+    el.exportCollision.addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-collision]");
+      if (!btn) return;
+      ex.collision = btn.dataset.collision;
+      $$("#export-collision button").forEach((item) => {
+        item.classList.toggle("is-active", item === btn);
+      });
+      updateExportSummary();
+    });
     el.exportZip.addEventListener("click", () => {
       if (ex.busy) return;
       const photos = exportPhotos(ex.scope);
@@ -9702,8 +9943,15 @@
       el.exportProgressSub.textContent = "正在完成当前文件…";
     });
     el.exportDone.addEventListener("click", closeExport);
-    el.wmEnable.addEventListener("change", () => {
-      wm.enabled = el.wmEnable.checked;
+    el.wmTextOn.addEventListener("change", () => {
+      wm.textOn = el.wmTextOn.checked;
+      wmRefreshGate();
+      wmSave();
+      updateExportUI();
+    });
+    el.wmLogoOn.addEventListener("change", () => {
+      wm.logoOn = el.wmLogoOn.checked;
+      wmRefreshGate();
       wmSave();
       updateExportUI();
     });

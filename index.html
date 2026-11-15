@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -7,7 +7,7 @@
 <meta name="description" content="FURIX SELECTS — 本地优先的照片选片台：快速浏览、键盘标记、即时筛选、批量另存。">
 <title>FURIX SELECTS · 选片台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d0e10'/%3E%3Cpath d='M22 46V19h22v6H29v6h12v6H29v9z' fill='%23e7c46a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=v371">
+<link rel="stylesheet" href="styles.css?v=v38">
 </head>
 <body>
 <div class="app no-library" id="app" data-view="grid">
@@ -498,7 +498,17 @@
       <button class="icon-btn" id="export-close" type="button" aria-label="关闭">×</button>
     </header>
 
-    <div class="modal-body">
+    <div class="export-body">
+      <aside class="export-preview">
+        <div class="export-preview-frame"><canvas id="wm-preview" width="640" height="400"></canvas></div>
+        <div class="export-preview-meta">
+          <strong id="export-preview-name">—</strong>
+          <span id="export-preview-dims"></span>
+        </div>
+        <p class="field-help" id="wm-note">预览用当前范围里第一张能解码的照片；RAW 与无法解码的文件会按原图复制，不加印章。</p>
+      </aside>
+
+      <div class="export-options">
       <div class="field">
         <div class="field-head"><span class="field-label">导出范围</span><span class="field-note" id="export-scope-note">—</span></div>
         <div class="seg" id="export-scope" role="group" aria-label="导出范围">
@@ -529,10 +539,10 @@
 
       <div class="field convert-options" id="convert-options">
         <div class="two-col">
-          <label class="input-label">长边
+          <label class="input-label">尺寸
             <span class="select-wrap full">
               <select id="export-size">
-                <option value="0">保持原尺寸</option>
+                <option value="0">原图（不限制长边）</option>
                 <option value="4096">4096 px</option>
                 <option value="2560" selected>2560 px</option>
                 <option value="2048">2048 px</option>
@@ -565,6 +575,16 @@
       </div>
 
       <div class="field">
+        <div class="field-head"><span class="field-label">同名文件</span><span class="field-note">目标文件夹里已经有同名文件时</span></div>
+        <div class="seg seg-wide" id="export-collision" role="group" aria-label="同名文件处理">
+          <button type="button" data-collision="ask" class="is-active">每次问我</button>
+          <button type="button" data-collision="overwrite">覆盖</button>
+          <button type="button" data-collision="suffix">加后缀</button>
+          <button type="button" data-collision="skip">跳过</button>
+        </div>
+      </div>
+
+      <div class="field">
         <label class="check">
           <input type="checkbox" id="export-subfolders">
           <span class="check-box"></span>
@@ -578,12 +598,13 @@
       </div>
 
       <div class="field wm-field">
+        <div class="field-head"><span class="field-label">水印</span><span class="field-note" id="wm-gate-note">不加水印</span></div>
         <label class="check">
-          <input type="checkbox" id="wm-enable">
+          <input type="checkbox" id="wm-text-on">
           <span class="check-box"></span>
-          <span class="check-text">导出时加水印 <small>会重新编码成 JPEG，EXIF 不保留</small></span>
+          <span class="check-text">文字水印 <small>@FURIX / 工作室名 / 手机号</small></span>
         </label>
-        <div class="wm-panel" id="wm-panel" hidden>
+        <div class="wm-panel" id="wm-text-panel" hidden>
           <div class="wm-row">
             <label class="input-label">文字
               <input id="wm-text" type="text" placeholder="@FURIX" maxlength="60" spellcheck="false" autocomplete="off">
@@ -661,6 +682,13 @@
               </span>
             </label>
           </div>
+        </div>
+        <label class="check wm-check-2">
+          <input type="checkbox" id="wm-logo-on">
+          <span class="check-box"></span>
+          <span class="check-text">图片水印 <small>PNG logo，和文字同时勾选就是双水印</small></span>
+        </label>
+        <div class="wm-panel" id="wm-logo-panel" hidden>
           <div class="wm-logo-row">
             <label class="btn btn-ghost btn-sm wm-logo-btn">选择 logo<input id="wm-logo-file" type="file" accept="image/png,image/webp,image/jpeg" hidden></label>
             <span class="wm-logo-name" id="wm-logo-name">未选择</span>
@@ -692,14 +720,13 @@
               <input id="wm-logo-opacity" type="range" min="10" max="100" step="5" value="85">
             </label>
           </div>
-          <div class="wm-preview-wrap"><canvas id="wm-preview" width="640" height="400"></canvas></div>
-          <p class="field-help" id="wm-note">预览用当前范围里第一张能解码的照片；RAW 与无法解码的文件会按原图复制，不加印章。</p>
         </div>
       </div>
 
       <div class="export-note">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.9 8.1-7 9.3-4.1-1.2-7-4.9-7-9.3V6z"/><path d="m9 12 2 2 4-4"/></svg>
         全部处理都在本机浏览器内完成，照片不会上传。
+      </div>
       </div>
     </div>
 
@@ -726,6 +753,29 @@
         <p class="export-failures" id="export-failures"></p>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="collide-modal" hidden>
+  <div class="modal collide-modal" role="dialog" aria-modal="true" aria-labelledby="collide-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> CONFLICT</p>
+        <h2 id="collide-title">同名文件</h2>
+      </div>
+    </header>
+    <div class="modal-body">
+      <p class="collide-text" id="collide-text">—</p>
+      <p class="collide-sample" id="collide-sample"></p>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="collide-hint">覆盖会直接替换目标文件夹里的同名文件</span>
+      <div class="foot-actions">
+        <button class="text-btn" id="collide-cancel" type="button">取消导出</button>
+        <button class="btn btn-ghost" id="collide-suffix" type="button">另存为副本</button>
+        <button class="btn btn-primary" id="collide-overwrite" type="button">覆盖同名文件</button>
+      </div>
+    </footer>
   </div>
 </div>
 
@@ -822,7 +872,8 @@
         <h4>散片 / 直出 / 水印</h4>
         <ul>
           <li>不成套、不算订单的活不用建项目：直接「快速选片」打开文件夹 → 选 → <kbd>Ctrl E</kbd> 导出，不占单号也不进台账。</li>
-          <li>导出对话框勾「导出时加水印」：文字和 logo 可单选或并用，位置九宫格 + 边距 + 大小 + 不透明度，带实时预览。</li>
+          <li>导出对话框左边是预览、右边是选项；水印分「文字」「图片」两个勾选，只勾一个就是单水印，都勾就是双水印，位置 / 边距 / 大小 / 不透明度各自独立。</li>
+          <li>尺寸可选「原图（不限制长边）」满分辨率直出；同名文件可选每次问我 / 覆盖 / 加后缀 / 跳过，选「每次问我」会先弹窗列出来。</li>
           <li>加水印会重新编码成 JPEG（复制原图、WebP 会被禁用），EXIF 不保留；RAW 等无法解码的文件按原图复制并提示张数。</li>
         </ul>
       </section>
@@ -864,7 +915,7 @@
       </section>
     </div>
     <footer class="modal-foot">
-      <span class="foot-hint">FURIX SELECTS · v3.7.1 · 本地优先的选片工作流</span>
+      <span class="foot-hint">FURIX SELECTS · v3.8 · 本地优先的选片工作流</span>
       <div class="foot-actions"><button class="btn btn-primary" id="help-ok" type="button">开始选片</button></div>
     </footer>
   </div>
@@ -1254,7 +1305,7 @@
 <input type="file" id="file-input" webkitdirectory multiple hidden>
 <input type="file" id="json-input" accept="application/json,.json" hidden>
 
-<script src="js/core.js?v=v371"></script>
-<script src="js/app.js?v=v371"></script>
+<script src="js/core.js?v=v38"></script>
+<script src="js/app.js?v=v38"></script>
 </body>
 </html>
