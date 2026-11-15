@@ -1224,7 +1224,7 @@
     const code = composeProjectCode();
     const clientNames = parseClientNames(el.projectClientsInput.value);
     if (!el.projectNameInput.value.trim()) {
-      toast("给这一场起个名字，比如 得闲。", "error");
+      toast("给这一场起个名字，比如 露营。", "error");
       return;
     }
     if (!clientNames.length) {
@@ -7963,6 +7963,11 @@
     timer: 0
   };
 
+  // 预览重绘令牌：布局一变就重画，旧的异步结果直接丢掉
+  let wmPreviewToken = 0;
+  let wmFrameObserver = null;
+  let wmFrameTimer = 0;
+
   function wmLoad() {
     try {
       const raw = localStorage.getItem(WM_KEY);
@@ -8156,6 +8161,21 @@
     }, 120);
   }
 
+  // 左栏尺寸一变（开面板、改窗口、调缩放）就按新尺寸重画，别让预览停在旧大小上
+  function watchWmFrame() {
+    if (wmFrameObserver || typeof ResizeObserver === "undefined") return;
+    const frame = el.wmPreview && el.wmPreview.parentElement;
+    if (!frame) return;
+    wmFrameObserver = new ResizeObserver(() => {
+      if (el.exportModal.hidden) return;
+      clearTimeout(wmFrameTimer);
+      wmFrameTimer = window.setTimeout(() => {
+        if (!el.exportModal.hidden) renderWmPreview();
+      }, 60);
+    });
+    wmFrameObserver.observe(frame);
+  }
+
   function wmPreviewPhoto() {
     const photos = exportPhotos(ex.scope);
     if (!photos.length) return null;
@@ -8187,14 +8207,20 @@
 
   async function renderWmPreview() {
     if (!el.wmPreview) return;
+    const token = ++wmPreviewToken;
     const canvas = el.wmPreview;
     const frame = canvas.parentElement;
+    // 还没布局好（弹窗刚开 / 已关闭）就先不画，交给 ResizeObserver 或下一次调度
+    const frameW = frame ? frame.clientWidth : 0;
+    const frameH = frame ? frame.clientHeight : 0;
+    if (frameW < 40 || frameH < 40) return;
     // 预览按左栏实际可用尺寸出图：1:1 像素，缩放后不糊
-    const availW = Math.max(160, Math.round((frame && frame.clientWidth ? frame.clientWidth : 640) - 34));
-    const availH = Math.max(120, Math.round((frame && frame.clientHeight ? frame.clientHeight : 460) - 34));
+    const availW = Math.max(160, frameW - 34);
+    const availH = Math.max(120, frameH - 34);
     const ctx = canvas.getContext("2d");
     const photo = wmPreviewPhoto();
     const bitmap = photo ? await wmBitmapFor(photo) : null;
+    if (token !== wmPreviewToken) return;
     let ratio = 3 / 2;
     if (bitmap && bitmap.width && bitmap.height) ratio = bitmap.width / bitmap.height;
     let width = availW;
@@ -8311,10 +8337,14 @@
     wmSyncInputs();
     el.exportModal.hidden = false;
     document.body.classList.add("modal-open");
+    watchWmFrame();
     const modalBody = el.exportModal.querySelector(".modal-body");
     if (modalBody) modalBody.scrollTop = 0;
     updateExportUI();
-    requestAnimationFrame(() => el.exportClose.focus({ preventScroll: true }));
+    requestAnimationFrame(() => {
+      renderWmPreview();
+      el.exportClose.focus({ preventScroll: true });
+    });
   }
 
   function closeExport() {
@@ -9796,6 +9826,9 @@
     el.gridScroll.addEventListener("pointerdown", beginMarquee);
     el.gridScroll.addEventListener("scroll", onGridScroll, { passive: true });
     window.addEventListener("resize", onGridResize);
+    window.addEventListener("resize", () => {
+      if (el.exportModal && !el.exportModal.hidden) scheduleWmPreview();
+    });
     el.grid.addEventListener("click", (event) => {
       if (marqueeSwallowedClick()) return;
       const card = event.target.closest(".card");

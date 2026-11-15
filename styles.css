@@ -4902,12 +4902,14 @@ input[type="range"]::-moz-range-thumb {
 
 .export-modal {
   width: min(1080px, 100%);
-  height: min(880px, calc(100vh - 40px));
+  /* 高度必须留在 backdrop 的 padding（24+24）里面，否则 flex 居中会把标题栏挤出可视区 */
+  height: min(880px, calc(100vh - 56px));
+  max-height: calc(100vh - 56px);
 }
 
 .export-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 412px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 412px);
   gap: 22px;
   flex: 1;
   min-height: 0;
@@ -4918,13 +4920,14 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   gap: 9px;
+  min-width: 0;
   min-height: 0;
 }
 
 .export-preview-frame {
   position: relative;
   flex: 1;
-  min-height: 240px;
+  min-height: 180px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
@@ -4964,7 +4967,9 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .export-options {
+  min-width: 0;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
