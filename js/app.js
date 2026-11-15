@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    FURIX SELECTS — application
    ============================================================ */
 
@@ -8151,6 +8151,7 @@
       });
       el.convertOptions.hidden = false;
     }
+    pinExportScroll();
     scheduleWmPreview();
   }
 
@@ -8159,6 +8160,14 @@
     wm.timer = window.setTimeout(() => {
       renderWmPreview();
     }, 120);
+  }
+
+  // 兜底：老浏览器不支持 overflow:clip 时，点复选框的 focus 仍可能把弹窗整体滚上去
+  function pinExportScroll() {
+    if (!el.exportModal) return;
+    if (el.exportModal.scrollTop) el.exportModal.scrollTop = 0;
+    const body = el.exportModal.querySelector(".export-body");
+    if (body && body.scrollTop) body.scrollTop = 0;
   }
 
   // 左栏尺寸一变（开面板、改窗口、调缩放）就按新尺寸重画，别让预览停在旧大小上
@@ -8219,19 +8228,35 @@
     const availH = Math.max(120, frameH - 34);
     const ctx = canvas.getContext("2d");
     const photo = wmPreviewPhoto();
+    // 先用记录里的宽高把画布尺寸定下来，别让首帧停在 <canvas width=640 height=400> 上
+    let ratio = 3 / 2;
+    if (photo && photo.width && photo.height) ratio = photo.width / photo.height;
+    let boxW = availW;
+    let boxH = Math.round(boxW / ratio);
+    if (boxH > availH) {
+      boxH = availH;
+      boxW = Math.round(boxH * ratio);
+    }
+    canvas.width = Math.max(40, boxW);
+    canvas.height = Math.max(40, boxH);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     const bitmap = photo ? await wmBitmapFor(photo) : null;
     if (token !== wmPreviewToken) return;
-    let ratio = 3 / 2;
-    if (bitmap && bitmap.width && bitmap.height) ratio = bitmap.width / bitmap.height;
-    let width = availW;
-    let height = Math.round(width / ratio);
-    if (height > availH) {
-      height = availH;
-      width = Math.round(height * ratio);
+    if (bitmap && bitmap.width && bitmap.height) {
+      const real = bitmap.width / bitmap.height;
+      if (Math.abs(real - ratio) > 0.01) {
+        ratio = real;
+        let w2 = availW;
+        let h2 = Math.round(w2 / ratio);
+        if (h2 > availH) {
+          h2 = availH;
+          w2 = Math.round(h2 * ratio);
+        }
+        canvas.width = Math.max(40, w2);
+        canvas.height = Math.max(40, h2);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
     }
-    canvas.width = Math.max(40, width);
-    canvas.height = Math.max(40, height);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (bitmap) {
       ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     } else {
@@ -9827,7 +9852,10 @@
     el.gridScroll.addEventListener("scroll", onGridScroll, { passive: true });
     window.addEventListener("resize", onGridResize);
     window.addEventListener("resize", () => {
-      if (el.exportModal && !el.exportModal.hidden) scheduleWmPreview();
+      if (el.exportModal && !el.exportModal.hidden) {
+        pinExportScroll();
+        scheduleWmPreview();
+      }
     });
     el.grid.addEventListener("click", (event) => {
       if (marqueeSwallowedClick()) return;

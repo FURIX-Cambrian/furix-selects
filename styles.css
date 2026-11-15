@@ -3795,7 +3795,10 @@ input[type="range"]::-moz-range-thumb {
   flex-direction: column;
   width: min(730px, 100%);
   max-height: calc(100vh - 48px);
+  /* clip：内容裁剪但容器不可滚动。用 hidden 时，子元素 focus 触发的
+     scroll-into-view 会把整个弹窗内容推上去，底下留一截诡异的空白。 */
   overflow: hidden;
+  overflow: clip;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 11px;
   background: #131417;
@@ -4900,19 +4903,39 @@ input[type="range"]::-moz-range-thumb {
    v3.8 导出弹窗：左预览 / 右选项（参考 LR 的排布）
    ============================================================ */
 
+/* 高度用百分比对着 backdrop 的可用高度算，不依赖 100vh：
+   窗口有工具栏、缩放、dvh 之类变化时，100vh 会算大，弹窗一超出就会被 flex 居中裁掉标题栏。 */
 .export-modal {
   width: min(1080px, 100%);
-  /* 高度必须留在 backdrop 的 padding（24+24）里面，否则 flex 居中会把标题栏挤出可视区 */
-  height: min(880px, calc(100vh - 56px));
-  max-height: calc(100vh - 56px);
+  height: min(880px, 100%);
+  max-height: 100%;
+  min-height: 0;
+}
+
+/* 头尾固定，中间那行自己吃掉剩余高度：不靠 flex-grow 去“猜”，
+   避免内容一长就把 footer 顶到中间、下面留一截空盒子。 */
+.export-modal > .modal-head {
+  flex: 0 0 auto;
+}
+
+.export-modal > .modal-foot {
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 .export-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, 412px);
+  grid-template-rows: minmax(0, 1fr);
   gap: 22px;
-  flex: 1;
+  /* height:0 + flex-grow 才是“正好占满剩余空间”，auto 高度会被内容撑出去 */
+  flex: 1 1 auto;
+  height: 0;
   min-height: 0;
+  /* 必须是 clip 而不是 hidden：hidden 仍然可以被 focus 的 scroll-into-view 程序化滚动，
+     一滚整个弹窗内容就往上跑，footer 下面留下一大块空盒子。clip 完全不可滚动。 */
+  overflow: hidden;
+  overflow: clip;
   padding: 0 25px 18px;
 }
 
@@ -4926,8 +4949,8 @@ input[type="range"]::-moz-range-thumb {
 
 .export-preview-frame {
   position: relative;
-  flex: 1;
-  min-height: 180px;
+  flex: 1 1 auto;
+  min-height: 120px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
@@ -4971,6 +4994,7 @@ input[type="range"]::-moz-range-thumb {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: #35373c transparent;
