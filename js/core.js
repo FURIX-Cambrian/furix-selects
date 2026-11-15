@@ -1306,21 +1306,35 @@
     const text = String(opts.text || "").trim();
     const logo = opts.logo || null;
     if (!text && !logo) return;
-    const longEdge = Math.max(width, height);
+    // 水印尺寸以「画面高度」为基准归一化：竖构图的高度就是长边，观感与旧版一致；
+    // 横构图 / 宽幅不会因为长边更长而把水印放大，横竖两张片子里的印章看起来一样大。
+    const textRef = Math.max(1, height);
+    // logo 宽度以「短边」为基准，横竖构图放在同一角落时占位一致。
+    const shortEdge = Math.max(1, Math.min(width, height));
 
     ctx.save();
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
 
     if (text) {
-      const fontSize = Math.max(8, Math.round((longEdge * (Number(opts.fontSize) || 3)) / 100));
-      const inset = (longEdge * (Number(opts.inset) || 0)) / 100;
+      let fontSize = Math.max(8, Math.round((textRef * (Number(opts.fontSize) || 3)) / 100));
+      const inset = (textRef * (Number(opts.inset) || 0)) / 100;
       const weight = String(opts.fontWeight || 600);
       const family =
         opts.fontFamily ||
         '"Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif';
-      ctx.font = weight + " " + fontSize + "px " + family;
-      const textWidth = ctx.measureText(text).width;
+      const applyFont = () => {
+        ctx.font = weight + " " + fontSize + "px " + family;
+      };
+      applyFont();
+      let textWidth = ctx.measureText(text).width;
+      // 文字过长时按可用宽度回缩，别让它顶到画框外面
+      const available = width - inset * 2;
+      if (available > 8 && textWidth > available) {
+        fontSize = Math.max(8, Math.floor((fontSize * available) / textWidth));
+        applyFont();
+        textWidth = ctx.measureText(text).width;
+      }
       const pos = anchorRect(opts.anchor, width, height, inset, textWidth, fontSize);
       ctx.globalAlpha = clamp(Number(opts.opacity) || 70, 5, 100) / 100;
       ctx.fillStyle = opts.color || "#ffffff";
@@ -1335,12 +1349,14 @@
     if (logo) {
       const logoInsetPercent =
         opts.logoInset == null ? Number(opts.inset) || 0 : Number(opts.logoInset) || 0;
-      const logoInset = (longEdge * logoInsetPercent) / 100;
-      const logoWidth = Math.max(
-        8,
-        Math.min(width * 0.6, (width * (Number(opts.logoSize) || 14)) / 100)
-      );
-      const logoHeight = (logoWidth * logo.height) / logo.width;
+      const logoInset = (textRef * logoInsetPercent) / 100;
+      const logoRatio = logo.width ? logo.height / logo.width : 0.3;
+      let logoWidth = Math.max(8, (shortEdge * (Number(opts.logoSize) || 14)) / 100);
+      // 竖长的 logo 别把画面吃穿
+      if (logoRatio > 0 && logoWidth * logoRatio > height * 0.5) {
+        logoWidth = Math.max(8, (height * 0.5) / logoRatio);
+      }
+      const logoHeight = logoWidth * logoRatio;
       const pos = anchorRect(
         opts.logoAnchor || opts.anchor,
         width,

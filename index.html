@@ -7,7 +7,7 @@
 <meta name="description" content="FURIX SELECTS — 本地优先的照片选片台：快速浏览、键盘标记、即时筛选、批量另存。">
 <title>FURIX SELECTS · 选片台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d0e10'/%3E%3Cpath d='M22 46V19h22v6H29v6h12v6H29v9z' fill='%23e7c46a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=v37">
+<link rel="stylesheet" href="styles.css?v=v371">
 </head>
 <body>
 <div class="app no-library" id="app" data-view="grid">
@@ -604,10 +604,10 @@
           </div>
           <div class="wm-row">
             <label class="input-label">文字大小 <span class="range-value" id="wm-size-val">3%</span>
-              <input id="wm-size" type="range" min="1" max="10" step="0.5" value="3">
+              <input id="wm-size" type="range" min="1" max="10" step="0.5" value="3" title="占画面高度的百分比，横竖构图自动统一">
             </label>
             <label class="input-label">边距 <span class="range-value" id="wm-inset-val">3%</span>
-              <input id="wm-inset" type="range" min="0" max="12" step="0.5" value="3">
+              <input id="wm-inset" type="range" min="0" max="12" step="0.5" value="3" title="占画面高度的百分比">
             </label>
           </div>
           <div class="wm-row">
@@ -681,12 +681,12 @@
               </div>
             </div>
             <label class="input-label">logo 大小 <span class="range-value" id="wm-logo-val">14%</span>
-              <input id="wm-logo-size" type="range" min="2" max="40" step="1" value="14">
+              <input id="wm-logo-size" type="range" min="2" max="40" step="1" value="14" title="占画面短边的百分比，横竖构图占位一致">
             </label>
           </div>
           <div class="wm-row">
             <label class="input-label">logo 边距 <span class="range-value" id="wm-logo-inset-val">3%</span>
-              <input id="wm-logo-inset" type="range" min="0" max="12" step="0.5" value="3">
+              <input id="wm-logo-inset" type="range" min="0" max="12" step="0.5" value="3" title="占画面高度的百分比">
             </label>
             <label class="input-label">logo 不透明度 <span class="range-value" id="wm-logo-opacity-val">85%</span>
               <input id="wm-logo-opacity" type="range" min="10" max="100" step="5" value="85">
@@ -864,7 +864,7 @@
       </section>
     </div>
     <footer class="modal-foot">
-      <span class="foot-hint">FURIX SELECTS · v3.7 · 本地优先的选片工作流</span>
+      <span class="foot-hint">FURIX SELECTS · v3.7.1 · 本地优先的选片工作流</span>
       <div class="foot-actions"><button class="btn btn-primary" id="help-ok" type="button">开始选片</button></div>
     </footer>
   </div>
@@ -1254,7 +1254,7 @@
 <input type="file" id="file-input" webkitdirectory multiple hidden>
 <input type="file" id="json-input" accept="application/json,.json" hidden>
 
-<script src="js/core.js?v=v37"></script>
-<script src="js/app.js?v=v37"></script>
+<script src="js/core.js?v=v371"></script>
+<script src="js/app.js?v=v371"></script>
 </body>
 </html>
