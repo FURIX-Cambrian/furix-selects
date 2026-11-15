@@ -1,4 +1,4 @@
-﻿# FURIX SELECTS · 选片台
+# FURIX SELECTS · 选片台
 
 一个跑在本机浏览器里的照片选片工作台：从 SD 卡分拣到按客户交付，全流程本地完成，不上传照片。
 
@@ -36,7 +36,18 @@ demo/                 示例图库
 launcher.ps1 / stop.ps1           Windows 启动器
 启动选片台.cmd / 停止选片台.cmd     Windows 双击入口
 启动选片台.command / 停止选片台.command  macOS 双击入口
+push.ps1 / 推送更新.cmd           一键提交并推送到 GitHub（Windows 双击）
 使用说明.md            完整文档（含版本历史）
+```
+
+## 更新到 GitHub
+
+改完文件后双击 `推送更新.cmd`：它会列出改动、问一句说明、提交并推送，认证已经存在系统凭据里，不用再登录。
+
+命令行等价写法：
+
+```bash
+git add -A && git commit -m "改了什么" && git push
 ```
 
 ## 版本
