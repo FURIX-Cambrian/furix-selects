@@ -1,5 +1,9 @@
 ﻿# FURIX 推送更新：双击「推送更新.cmd」时真正干活的是这个脚本
-$ErrorActionPreference = 'Stop'
+# 注意：不要用 ErrorActionPreference=Stop —— git 会把进度写到 stderr，
+# 那会被 PowerShell 当成终止错误，明明推送成功却报失败。统一靠 $LASTEXITCODE 判断。
+param([string]$Message = '')
+
+$ErrorActionPreference = 'Continue'
 Set-Location -LiteralPath $PSScriptRoot
 
 function Write-Step($text) {
@@ -25,11 +29,11 @@ if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.git'))) {
   Fail '这个文件夹不是 git 仓库，先按「发布到GitHub.md」初始化。'
 }
 
-& $git remote get-url origin 2>$null | Out-Null
-if ($LASTEXITCODE -ne 0) {
+$remote = (& $git remote get-url origin 2>$null)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($remote)) {
   Fail '还没绑定远端仓库。先按「发布到GitHub.md」把 origin 加好，再回来双击。'
 }
-$remote = (& $git remote get-url origin).Trim()
+$remote = $remote.Trim()
 
 Write-Step '将要提交的改动'
 & $git status --short
@@ -64,8 +68,12 @@ if ($risky.Count -gt 0) {
 }
 
 $default = '更新 ' + (Get-Date -Format 'yyyy-MM-dd HH:mm')
-Write-Host ''
-$msg = Read-Host ("这次改了什么？（直接回车＝" + $default + "）")
+$msg = $Message
+if ([string]::IsNullOrWhiteSpace($msg)) {
+  Write-Host ''
+  $typed = Read-Host ("这次改了什么？（直接回车＝" + $default + "）")
+  if (-not [string]::IsNullOrWhiteSpace($typed)) { $msg = $typed }
+}
 if ([string]::IsNullOrWhiteSpace($msg)) { $msg = $default }
 
 Write-Step '提交'
@@ -80,7 +88,10 @@ if ($LASTEXITCODE -ne 0) {
   Write-Host '推送失败。第一次推送可能需要在弹出的窗口/浏览器里登录授权，授权完再双击一次。' -ForegroundColor Red
   exit 1
 }
-& $git push --tags 2>$null | Out-Null
+& $git push --tags
+if ($LASTEXITCODE -ne 0) {
+  Write-Host '（标签推送失败，但代码已经推上去了，不影响使用。）' -ForegroundColor Yellow
+}
 
 Write-Host ''
 Write-Host '推送完成。' -ForegroundColor Green
