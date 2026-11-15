@@ -1,0 +1,1260 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="FURIX SELECTS — 本地优先的照片选片台：快速浏览、键盘标记、即时筛选、批量另存。">
+<title>FURIX SELECTS · 选片台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d0e10'/%3E%3Cpath d='M22 46V19h22v6H29v6h12v6H29v9z' fill='%23e7c46a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=v37">
+</head>
+<body>
+<div class="app no-library" id="app" data-view="grid">
+
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#" id="brand" aria-label="FURIX SELECTS 首页">
+      <span class="brand-mark">F</span>
+      <span class="brand-word">FURIX</span>
+      <span class="brand-sub">SELECTS</span>
+    </a>
+
+    <div class="topbar-main">
+      <button class="folder-breadcrumb" id="btn-folder" type="button" title="打开或更换照片文件夹">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.8A1.8 1.8 0 0 1 5.3 6h4.2l2.1 2.4h7.1a1.8 1.8 0 0 1 1.8 1.8v7.7a1.8 1.8 0 0 1-1.8 1.8H5.3a1.8 1.8 0 0 1-1.8-1.8z"/></svg>
+        <span id="crumb-name">未打开图库</span>
+        <span class="crumb-count" id="crumb-count"></span>
+        <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+      </button>
+
+      <label class="searchbox" for="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input id="search" type="search" placeholder="搜索文件名" autocomplete="off" spellcheck="false">
+        <kbd class="search-kbd">Ctrl F</kbd>
+      </label>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="view-switch" role="group" aria-label="视图切换">
+        <button id="view-grid" class="is-active" type="button" title="网格视图 (G)" aria-label="网格视图">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5"/></svg>
+        </button>
+        <button id="view-loupe" type="button" title="放大视图 (L)" aria-label="放大视图">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1.5"/><circle cx="9.3" cy="10" r="1.6"/><path d="m5 17 4.6-4.6 3.1 3.1 2.7-2.7L20 17"/></svg>
+        </button>
+      </div>
+      <button class="btn btn-primary" id="btn-export" type="button" title="批量导出 (Ctrl+E)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 19h14"/></svg>
+        导出
+        <kbd class="btn-kbd">Ctrl E</kbd>
+      </button>
+      <button class="icon-btn" id="btn-menu" type="button" title="更多操作" aria-label="更多操作" aria-haspopup="menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar" id="sidebar" aria-label="图库导航">
+      <div class="sidebar-section">
+        <div class="section-label">当前图库</div>
+        <button class="folder-card" id="btn-folder-2" type="button">
+          <span class="folder-card-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.8A1.8 1.8 0 0 1 5.3 6h4.2l2.1 2.4h7.1a1.8 1.8 0 0 1 1.8 1.8v7.7a1.8 1.8 0 0 1-1.8 1.8H5.3a1.8 1.8 0 0 1-1.8-1.8z"/></svg>
+          </span>
+          <span class="folder-card-text">
+            <strong id="folder-name">未打开</strong>
+            <small id="folder-sub">选择一个照片文件夹</small>
+          </span>
+          <span class="folder-card-change">更换</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section project-section" id="project-section" hidden>
+        <div class="section-label">项目 / 客户 <button class="section-action" id="btn-project-menu" type="button">操作</button></div>
+        <div class="mini-menu" id="project-menu" hidden>
+          <button type="button" data-action="sessions"><span>场次与客户</span></button>
+          <button type="button" data-action="returns"><span>客户回传</span></button>
+          <button type="button" data-action="delivery"><span>成品集 / 打包</span></button>
+          <button type="button" data-action="archive"><span>归档 / 恢复</span></button>
+          <button type="button" data-action="ledger"><span>台账统计</span></button>
+          <button type="button" data-action="clients"><span>客户改名</span></button>
+          <button type="button" data-action="source"><span>更换素材源</span></button>
+          <button type="button" data-action="export"><span>按客户导出</span></button>
+          <button type="button" data-action="close"><span>关闭项目</span></button>
+        </div>
+        <button class="source-card" id="btn-source" type="button">
+          <span class="source-dot"></span>
+          <span class="source-text"><strong id="source-name">未挂载素材源</strong><small id="source-sub">选择 SD 卡根目录</small></span>
+          <span class="source-change">更换</span>
+        </button>
+        <div class="client-list" id="client-list"></div>
+        <div class="project-actions">
+          <button class="btn btn-outline btn-sm" id="btn-sessions" type="button">场次与客户</button>
+          <button class="btn btn-primary btn-sm" id="btn-project-export" type="button">按客户导出</button>
+        </div>
+        <div class="project-actions single">
+          <button class="btn btn-outline btn-sm" id="btn-returns" type="button">客户回传 → 选图集</button>
+        </div>
+        <div class="project-actions single">
+          <button class="btn btn-outline btn-sm" id="btn-delivery" type="button">成品集 / 打包交付</button>
+        </div>
+        <div class="project-actions">
+          <button class="btn btn-ghost btn-sm" id="btn-ledger" type="button">台账统计</button>
+          <button class="btn btn-ghost btn-sm" id="btn-clients" type="button">客户改名</button>
+        </div>
+        <div class="project-actions single">
+          <button class="btn btn-ghost btn-sm" id="btn-archive" type="button">归档 / 恢复</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">标记 <span class="section-meta" id="mark-count">0</span></div>
+        <nav class="filter-list" aria-label="按标记筛选">
+          <button class="filter-row is-active" type="button" data-flag="all">
+            <span class="row-ico all"><i></i></span><span class="row-label">全部照片</span><span class="row-count" id="count-all">0</span>
+          </button>
+          <button class="filter-row" type="button" data-flag="pick">
+            <span class="row-ico pick">✓</span><span class="row-label">留用</span><span class="row-count" id="count-pick">0</span>
+          </button>
+          <button class="filter-row" type="button" data-flag="none">
+            <span class="row-ico none"></span><span class="row-label">待定</span><span class="row-count" id="count-none">0</span>
+          </button>
+          <button class="filter-row" type="button" data-flag="reject">
+            <span class="row-ico reject">×</span><span class="row-label">淘汰</span><span class="row-count" id="count-reject">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">星级</div>
+        <div class="rating-filter" id="rating-filter" role="group" aria-label="按星级筛选">
+          <button type="button" data-min="0" class="is-active">全部</button>
+          <button type="button" data-min="1" title="至少 1 星">★1+</button>
+          <button type="button" data-min="2" title="至少 2 星">★2+</button>
+          <button type="button" data-min="3" title="至少 3 星">★3+</button>
+          <button type="button" data-min="4" title="至少 4 星">★4+</button>
+          <button type="button" data-min="5" title="5 星">★5</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">颜色 <button class="section-action hidden" id="clear-colors" type="button">清除</button></div>
+        <div class="color-filter" id="color-filter" role="group" aria-label="按颜色筛选">
+          <button type="button" data-color="red" title="红色标记"><span class="swatch red"></span><em id="count-color-red">0</em></button>
+          <button type="button" data-color="yellow" title="黄色标记"><span class="swatch yellow"></span><em id="count-color-yellow">0</em></button>
+          <button type="button" data-color="green" title="绿色标记"><span class="swatch green"></span><em id="count-color-green">0</em></button>
+          <button type="button" data-color="blue" title="蓝色标记"><span class="swatch blue"></span><em id="count-color-blue">0</em></button>
+          <button type="button" data-color="purple" title="紫色标记"><span class="swatch purple"></span><em id="count-color-purple">0</em></button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">EXIF 分类 <button class="section-action hidden" id="clear-exif" type="button">清除</button></div>
+        <div class="exif-filters">
+          <label class="exif-filter"><span>机身</span>
+            <select id="filter-camera" aria-label="按机身形号筛选">
+              <option value="all">全部</option>
+              <option value="unknown">未知</option>
+            </select>
+          </label>
+          <label class="exif-filter"><span>镜头</span>
+            <select id="filter-lens" aria-label="按镜头筛选">
+              <option value="all">全部</option>
+              <option value="unknown">未知</option>
+            </select>
+          </label>
+          <label class="exif-filter"><span>焦段</span>
+            <select id="filter-focal" aria-label="按焦段筛选">
+              <option value="all">全部</option>
+              <option value="f24">≤ 24 mm</option>
+              <option value="f35">25–35 mm</option>
+              <option value="f70">36–70 mm</option>
+              <option value="f135">71–135 mm</option>
+              <option value="f300">136–300 mm</option>
+              <option value="f301">&gt; 300 mm</option>
+              <option value="unknown">未知</option>
+            </select>
+          </label>
+          <label class="exif-filter"><span>光圈</span>
+            <select id="filter-aperture" aria-label="按光圈筛选">
+              <option value="all">全部</option>
+              <option value="a2">f/≤ 2</option>
+              <option value="a28">f/2.1–2.8</option>
+              <option value="a4">f/2.9–4</option>
+              <option value="a56">f/4.1–5.6</option>
+              <option value="a8">f/5.7–8</option>
+              <option value="a8p">&gt; f/8</option>
+              <option value="unknown">未知</option>
+            </select>
+          </label>
+        </div>
+        <div class="exif-scan" id="exif-scan-state"></div>
+      </div>
+
+      <div class="sidebar-section shortcut-card">
+        <div class="section-label">快捷键</div>
+        <dl class="shortcuts-mini">
+          <div><dt><kbd>P</kbd></dt><dd>留用</dd></div>
+          <div><dt><kbd>X</kbd></dt><dd>淘汰</dd></div>
+          <div><dt><kbd>0–5</kbd></dt><dd>星级</dd></div>
+          <div><dt><kbd>Space</kbd></dt><dd>放大 / 缩放</dd></div>
+          <div><dt><kbd>Ctrl E</kbd></dt><dd>批量导出</dd></div>
+        </dl>
+        <button class="help-link" id="btn-help-2" type="button">全部快捷键 <span>?</span></button>
+      </div>
+
+      <p class="sidebar-foot">照片不会离开这台电脑</p>
+    </aside>
+
+    <main class="stage" id="stage">
+      <div class="filterbar" id="filterbar">
+        <div class="filterbar-left">
+          <span class="stage-title" id="stage-title">全部照片</span>
+          <span class="stage-count" id="stage-count">0 张</span>
+          <div class="file-switch" id="file-filter" role="group" aria-label="文件类型视图">
+            <button type="button" data-file="all" class="is-active">全部</button>
+            <button type="button" data-file="jpg">JPG</button>
+            <button type="button" data-file="raw">RAW</button>
+          </div>
+          <button class="dup-toggle" id="dup-toggle" type="button" aria-pressed="false" title="同名且大小相同的照片只显示一张（保留最外层、无后缀的那张）">
+            <span class="dup-dot"></span>隐藏重复 <em id="dup-count"></em>
+          </button>
+          <label class="select-wrap session-select" id="session-select-wrap" hidden>
+            <span>场次</span>
+            <select id="session-filter" aria-label="按拍摄场次筛选">
+              <option value="all">全部场次</option>
+            </select>
+          </label>
+        </div>
+        <div class="filterbar-right">
+          <label class="select-wrap">
+            <span>排序</span>
+            <select id="sort" aria-label="排序方式">
+              <option value="name-asc">文件名 A→Z</option>
+              <option value="name-desc">文件名 Z→A</option>
+              <option value="date-desc">文件日期 新→旧</option>
+              <option value="date-asc">文件日期 旧→新</option>
+              <option value="taken-desc">拍摄时间 新→旧</option>
+              <option value="taken-asc">拍摄时间 旧→新</option>
+              <option value="focal-asc">焦段 近→远</option>
+              <option value="focal-desc">焦段 远→近</option>
+              <option value="aperture-asc">光圈 大→小</option>
+              <option value="aperture-desc">光圈 小→大</option>
+              <option value="rating-desc">星级 高→低</option>
+              <option value="size-desc">文件 大→小</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </label>
+          <div class="thumbsize" title="缩略图大小（[ 和 ]）">
+            <button id="thumb-smaller" type="button" aria-label="缩小缩略图">−</button>
+            <input id="thumb-range" type="range" min="140" max="320" step="8" value="208" aria-label="缩略图大小">
+            <button id="thumb-larger" type="button" aria-label="放大缩略图">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-scroll" id="grid-scroll">
+        <div class="marquee" id="marquee" hidden></div>
+        <section class="empty" id="empty">
+          <div class="hub">
+            <div class="hub-top">
+              <span class="hub-brand">FURIX SELECTS</span>
+              <span class="hub-note">本地运行 · 不上传 · 文件夹读写需要 Chrome / Edge</span>
+              <button class="hub-demo" id="btn-demo" type="button">示例</button>
+            </div>
+            <div class="hub-actions">
+              <button class="btn btn-primary" id="btn-new-project" type="button">新建项目</button>
+              <button class="btn btn-ghost" id="btn-open-project" type="button">打开项目</button>
+              <button class="btn btn-ghost" id="btn-adopt-project" type="button">接入已有项目</button>
+              <button class="btn btn-ghost" id="btn-open" type="button">快速选片</button>
+            </div>
+            <div class="hub-recent" id="hub-recent" hidden>
+              <div class="hub-recent-label">最近项目</div>
+              <div class="hub-list" id="hub-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-empty" id="project-empty" hidden>
+          <div class="pe-card">
+            <div class="pe-head">
+              <strong id="pe-name">—</strong>
+              <span class="pe-type" id="pe-type">订单</span>
+            </div>
+            <p class="pe-meta" id="pe-meta">—</p>
+            <div class="pe-actions">
+              <button class="btn btn-primary" id="pe-source" type="button">选择素材源</button>
+              <button class="btn btn-ghost" id="pe-export" type="button">按客户导出</button>
+              <button class="btn btn-ghost" id="pe-delivery" type="button">成品集 / 打包</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="no-results" id="no-results" hidden>
+          <div class="no-results-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+          </div>
+          <h3>当前筛选下没有照片</h3>
+          <p>换个标记，或者清除筛选重新看一遍。</p>
+          <button class="btn btn-outline" id="clear-filters" type="button">清除全部筛选</button>
+        </div>
+
+        <div class="grid" id="grid" role="listbox" aria-multiselectable="true" aria-label="照片" hidden></div>
+
+        <div class="grid-loading" id="grid-loading" hidden>
+          <div class="spinner"></div><span>正在整理照片…</span>
+        </div>
+      </div>
+
+      <section class="loupe" id="loupe" hidden aria-label="放大查看">
+        <div class="loupe-head">
+          <button class="loupe-back" id="loupe-back" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m10 7-5 5 5 5"/></svg>
+            返回网格
+          </button>
+          <div class="loupe-title">
+            <span class="loupe-index" id="loupe-index">1 / 12</span>
+            <strong id="loupe-name">—</strong>
+            <span class="loupe-raw-chip" id="loupe-raw-chip" hidden>RAW · 内嵌预览</span>
+          </div>
+          <div class="loupe-actions">
+            <div class="loupe-rot" role="group" aria-label="旋转与翻转">
+              <button class="icon-btn" id="loupe-rot-left" type="button" title="左转 90°（Shift+E）">↺</button>
+              <button class="icon-btn" id="loupe-rot-right" type="button" title="右转 90°（Shift+R）">↻</button>
+            </div>
+            <button class="icon-btn" id="loupe-zoom" type="button" title="适应 / 100% (Z)">适应</button>
+            <button class="icon-btn" id="loupe-fullscreen" type="button" title="全屏 (F)" aria-label="全屏">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
+            </button>
+            <button class="btn btn-primary btn-sm" id="loupe-export" type="button">导出</button>
+          </div>
+        </div>
+
+        <div class="loupe-canvas" id="loupe-canvas">
+          <div class="loupe-frame" id="loupe-frame">
+            <img id="loupe-img" alt="" draggable="false">
+          </div>
+          <div class="loupe-unsupported" id="loupe-unsupported" hidden>
+            <div class="unsupported-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="m5 17 5-5 3.2 3.2 2.6-2.6L20 17"/><circle cx="9" cy="9" r="1.4"/></svg>
+            </div>
+            <strong id="unsupported-title">这个格式无法在浏览器里预览</strong>
+            <p id="unsupported-text">RAW / HEIC 等格式仍可打标记，并在导出时复制原文件。</p>
+          </div>
+          <button class="loupe-nav prev" id="loupe-prev" type="button" aria-label="上一张">‹</button>
+          <button class="loupe-nav next" id="loupe-next" type="button" aria-label="下一张">›</button>
+          <div class="loupe-zoom-readout" id="loupe-zoom-readout" hidden>100%</div>
+        </div>
+
+        <div class="filmstrip" id="filmstrip" aria-label="胶片条"></div>
+      </section>
+
+      <div class="loading" id="loading" hidden>
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <strong id="loading-title">正在读取照片…</strong>
+          <div class="progress"><span id="loading-bar"></span></div>
+          <small id="loading-sub">0 个文件</small>
+          <button class="text-btn" id="loading-cancel" type="button">取消</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="inspector" id="inspector" aria-label="检查器">
+      <div class="inspector-head">
+        <span class="section-label">检查器</span>
+        <button class="icon-btn sm" id="inspector-close" type="button" title="隐藏检查器 (I)" aria-label="隐藏检查器">×</button>
+      </div>
+
+      <div class="inspector-empty" id="inspector-empty">
+        <span class="inspector-empty-mark">F</span>
+        <strong>选择一张照片</strong>
+        <p>查看信息、打标记<br>或用方向键连续选片</p>
+      </div>
+
+      <div class="inspector-body" id="inspector-body" hidden>
+        <button class="inspector-preview" id="inspector-preview" type="button" title="放大查看">
+          <img id="inspector-img" alt="">
+          <span class="preview-shade"></span>
+          <span class="preview-multi" id="inspector-multi" hidden></span>
+          <span class="preview-zoom">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M11 8.5v5M8.5 11h5"/><path d="m16 16 4 4"/></svg>
+          </span>
+        </button>
+
+        <div class="inspector-title">
+          <strong id="inspector-name">—</strong>
+          <span id="inspector-path">—</span>
+        </div>
+
+        <div class="mark-controls">
+          <div class="control-label">标记</div>
+          <div class="flag-buttons" id="flag-buttons">
+            <button type="button" data-flag="pick" class="flag-btn pick"><span>✓</span>留用</button>
+            <button type="button" data-flag="none" class="flag-btn">待定</button>
+            <button type="button" data-flag="reject" class="flag-btn reject"><span>×</span>淘汰</button>
+          </div>
+        </div>
+
+        <div class="mark-controls">
+          <div class="control-label">星级 <span class="control-value" id="rating-value">未评级</span></div>
+          <div class="star-buttons" id="star-buttons" role="group" aria-label="设置星级">
+            <button type="button" data-value="1" aria-label="1 星">★</button>
+            <button type="button" data-value="2" aria-label="2 星">★</button>
+            <button type="button" data-value="3" aria-label="3 星">★</button>
+            <button type="button" data-value="4" aria-label="4 星">★</button>
+            <button type="button" data-value="5" aria-label="5 星">★</button>
+            <button type="button" class="star-clear" data-value="0" title="清除星级">清除</button>
+          </div>
+        </div>
+
+        <div class="mark-controls">
+          <div class="control-label">颜色</div>
+          <div class="color-row" id="color-row" role="group" aria-label="设置颜色">
+            <button type="button" data-color="red" class="swatch red" aria-label="红色"></button>
+            <button type="button" data-color="yellow" class="swatch yellow" aria-label="黄色"></button>
+            <button type="button" data-color="green" class="swatch green" aria-label="绿色"></button>
+            <button type="button" data-color="blue" class="swatch blue" aria-label="蓝色"></button>
+            <button type="button" data-color="purple" class="swatch purple" aria-label="紫色"></button>
+            <button type="button" class="color-clear" data-color="none" title="清除颜色">×</button>
+          </div>
+        </div>
+
+        <div class="mark-controls">
+          <div class="control-label">方向</div>
+          <div class="orient-row" id="orient-row" role="group" aria-label="旋转与翻转">
+            <button type="button" data-orient="left" title="左转 90°（Shift+E）">↺</button>
+            <button type="button" data-orient="right" title="右转 90°（Shift+R）">↻</button>
+            <button type="button" data-orient="mirror" title="水平翻转（Shift+M）">⇋</button>
+            <button type="button" data-orient="reset" class="color-clear" title="复位">×</button>
+          </div>
+        </div>
+
+        <dl class="meta-list" id="meta-list">
+          <div><dt id="meta-dims-label">尺寸</dt><dd id="meta-dims">—</dd></div>
+          <div><dt>大小</dt><dd id="meta-size">—</dd></div>
+          <div><dt>格式</dt><dd id="meta-type">—</dd></div>
+          <div id="meta-preview-row" hidden><dt>预览</dt><dd id="meta-preview">—</dd></div>
+          <div><dt>修改时间</dt><dd id="meta-date">—</dd></div>
+        </dl>
+
+        <section class="exif-card" id="exif-card" hidden>
+          <div class="exif-card-head"><span>拍摄信息</span><span id="exif-state"></span></div>
+          <dl class="exif-grid">
+            <div class="wide"><dt>相机</dt><dd id="exif-camera">—</dd></div>
+            <div class="wide"><dt>镜头</dt><dd id="exif-lens">—</dd></div>
+            <div><dt>焦段</dt><dd id="exif-focal">—</dd></div>
+            <div><dt>光圈</dt><dd id="exif-aperture">—</dd></div>
+            <div><dt>快门</dt><dd id="exif-shutter">—</dd></div>
+            <div><dt>ISO</dt><dd id="exif-iso">—</dd></div>
+            <div class="wide"><dt>拍摄时间</dt><dd id="exif-date">—</dd></div>
+          </dl>
+        </section>
+
+        <button class="btn btn-outline full" id="inspector-export" type="button">
+          导出所选 <span id="inspector-export-count"></span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="statusbar">
+    <div class="status-left">
+      <span id="status-count">0 张照片</span>
+      <span class="status-sep">/</span>
+      <span id="status-selected">未选择</span>
+      <span class="save-state local" id="save-state"><i></i><span>本地图库</span></span>
+    </div>
+    <div class="status-hints">
+      <span><kbd>P</kbd> 留用</span>
+      <span><kbd>X</kbd> 淘汰</span>
+      <span><kbd>0–5</kbd> 星级</span>
+      <span><kbd>Space</kbd> 放大</span>
+      <span><kbd>?</kbd> 帮助</span>
+    </div>
+    <div class="status-right" id="status-filter">无筛选</div>
+  </footer>
+</div>
+
+<div class="menu" id="menu" hidden role="menu">
+  <button type="button" data-action="rescan" role="menuitem"><span>重新扫描文件夹</span><kbd>R</kbd></button>
+  <div class="menu-sep"></div>
+  <button type="button" data-action="export-catalog" role="menuitem"><span>导出标记备份</span><small>JSON</small></button>
+  <button type="button" data-action="import-catalog" role="menuitem"><span>导入标记备份</span><small>JSON</small></button>
+  <button type="button" data-action="clear-marks" role="menuitem" class="menu-danger"><span>清空本图库标记</span></button>
+  <div class="menu-sep"></div>
+  <button type="button" data-action="close-library" role="menuitem"><span>关闭当前图库</span></button>
+  <button type="button" data-action="help" role="menuitem"><span>使用说明与快捷键</span><kbd>?</kbd></button>
+</div>
+
+<div class="modal-backdrop" id="export-modal" hidden>
+  <div class="modal export-modal" role="dialog" aria-modal="true" aria-labelledby="export-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> EXPORT</p>
+        <h2 id="export-title">批量另存为</h2>
+      </div>
+      <button class="icon-btn" id="export-close" type="button" aria-label="关闭">×</button>
+    </header>
+
+    <div class="modal-body">
+      <div class="field">
+        <div class="field-head"><span class="field-label">导出范围</span><span class="field-note" id="export-scope-note">—</span></div>
+        <div class="seg" id="export-scope" role="group" aria-label="导出范围">
+          <button type="button" data-scope="selected">所选 <b>0</b></button>
+          <button type="button" data-scope="pick">留用 <b>0</b></button>
+          <button type="button" data-scope="view">当前筛选 <b>0</b></button>
+          <button type="button" data-scope="all">全部 <b>0</b></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">输出方式</span>
+        <div class="mode-grid" id="export-mode" role="group" aria-label="输出方式">
+          <button type="button" data-mode="copy" class="is-active">
+            <strong>复制原图</strong>
+            <span>保持原始文件，不做任何压缩</span>
+          </button>
+          <button type="button" data-mode="jpeg">
+            <strong>导出 JPEG</strong>
+            <span>统一长边与质量，适合交付</span>
+          </button>
+          <button type="button" data-mode="webp">
+            <strong>导出 WebP</strong>
+            <span>体积更小，适合网页使用</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field convert-options" id="convert-options">
+        <div class="two-col">
+          <label class="input-label">长边
+            <span class="select-wrap full">
+              <select id="export-size">
+                <option value="0">保持原尺寸</option>
+                <option value="4096">4096 px</option>
+                <option value="2560" selected>2560 px</option>
+                <option value="2048">2048 px</option>
+                <option value="1600">1600 px</option>
+                <option value="1200">1200 px</option>
+              </select>
+              <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+            </span>
+          </label>
+          <label class="input-label">质量 <span class="range-value" id="quality-val">92</span>
+            <input id="export-quality" type="range" min="60" max="100" step="1" value="92">
+          </label>
+        </div>
+      </div>
+
+      <div class="field two-col">
+        <label class="input-label">文件命名
+          <span class="select-wrap full">
+            <select id="export-naming">
+              <option value="original">保留原文件名</option>
+              <option value="seq">序号_原文件名</option>
+              <option value="prefix-seq">前缀_序号</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </span>
+        </label>
+        <label class="input-label" id="prefix-field">前缀
+          <input id="export-prefix" type="text" value="FURIX" maxlength="24" spellcheck="false" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="field">
+        <label class="check">
+          <input type="checkbox" id="export-subfolders">
+          <span class="check-box"></span>
+          <span class="check-text">按标记分文件夹 <small>留用 / 待定 / 淘汰</small></span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="export-xmp" checked>
+          <span class="check-box"></span>
+          <span class="check-text">写入 XMP 标记 <small>星级、颜色与标记，Lightroom 可读</small></span>
+        </label>
+      </div>
+
+      <div class="field wm-field">
+        <label class="check">
+          <input type="checkbox" id="wm-enable">
+          <span class="check-box"></span>
+          <span class="check-text">导出时加水印 <small>会重新编码成 JPEG，EXIF 不保留</small></span>
+        </label>
+        <div class="wm-panel" id="wm-panel" hidden>
+          <div class="wm-row">
+            <label class="input-label">文字
+              <input id="wm-text" type="text" placeholder="@FURIX" maxlength="60" spellcheck="false" autocomplete="off">
+            </label>
+            <div class="input-label">位置
+              <div class="wm-anchors" id="wm-anchor" role="group" aria-label="水印位置">
+                <button type="button" data-anchor="top-left" title="左上"></button>
+                <button type="button" data-anchor="top-center" title="上中"></button>
+                <button type="button" data-anchor="top-right" title="右上"></button>
+                <button type="button" data-anchor="middle-left" title="左中"></button>
+                <button type="button" data-anchor="middle-center" title="居中"></button>
+                <button type="button" data-anchor="middle-right" title="右中"></button>
+                <button type="button" data-anchor="bottom-left" title="左下"></button>
+                <button type="button" data-anchor="bottom-center" title="下中"></button>
+                <button type="button" data-anchor="bottom-right" class="is-active" title="右下"></button>
+              </div>
+            </div>
+          </div>
+          <div class="wm-row">
+            <label class="input-label">文字大小 <span class="range-value" id="wm-size-val">3%</span>
+              <input id="wm-size" type="range" min="1" max="10" step="0.5" value="3">
+            </label>
+            <label class="input-label">边距 <span class="range-value" id="wm-inset-val">3%</span>
+              <input id="wm-inset" type="range" min="0" max="12" step="0.5" value="3">
+            </label>
+          </div>
+          <div class="wm-row">
+            <label class="input-label">字体
+              <span class="select-wrap full">
+                <select id="wm-font">
+                  <option value="sans">无衬线（默认）</option>
+                  <option value="hei">黑体</option>
+                  <option value="song">宋体</option>
+                  <option value="kai">楷体</option>
+                  <option value="serif">英文衬线</option>
+                  <option value="mono">等宽</option>
+                  <option value="custom">自定义（下面填）</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+              </span>
+            </label>
+            <label class="input-label">字重
+              <span class="select-wrap full">
+                <select id="wm-weight">
+                  <option value="400">常规</option>
+                  <option value="600" selected>半粗</option>
+                  <option value="800">特粗</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+              </span>
+            </label>
+          </div>
+          <div class="wm-row">
+            <label class="input-label">自定义字体
+              <input id="wm-family" type="text" list="wm-font-list" placeholder="留空就用上面选的" maxlength="60" spellcheck="false" autocomplete="off">
+              <datalist id="wm-font-list"></datalist>
+            </label>
+            <div class="input-label">系统字体
+              <button class="btn btn-ghost btn-sm wm-font-btn" id="wm-font-load" type="button">读取本机字体</button>
+              <span class="wm-font-note" id="wm-font-note">需要 Chrome / Edge，会弹一次授权</span>
+            </div>
+          </div>
+          <div class="wm-row">
+            <label class="input-label">不透明度 <span class="range-value" id="wm-opacity-val">70%</span>
+              <input id="wm-opacity" type="range" min="10" max="100" step="5" value="70">
+            </label>
+            <label class="input-label">颜色
+              <span class="select-wrap full">
+                <select id="wm-color">
+                  <option value="#ffffff">白色</option>
+                  <option value="#000000">黑色</option>
+                  <option value="#e7c46a">金色</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+              </span>
+            </label>
+          </div>
+          <div class="wm-logo-row">
+            <label class="btn btn-ghost btn-sm wm-logo-btn">选择 logo<input id="wm-logo-file" type="file" accept="image/png,image/webp,image/jpeg" hidden></label>
+            <span class="wm-logo-name" id="wm-logo-name">未选择</span>
+            <button class="text-btn" id="wm-logo-clear" type="button">清除</button>
+          </div>
+          <div class="wm-row">
+            <div class="input-label">logo 位置
+              <div class="wm-anchors" id="wm-logo-anchor" role="group" aria-label="logo 位置">
+                <button type="button" data-anchor="top-left" title="左上"></button>
+                <button type="button" data-anchor="top-center" title="上中"></button>
+                <button type="button" data-anchor="top-right" title="右上"></button>
+                <button type="button" data-anchor="middle-left" title="左中"></button>
+                <button type="button" data-anchor="middle-center" title="居中"></button>
+                <button type="button" data-anchor="middle-right" title="右中"></button>
+                <button type="button" data-anchor="bottom-left" class="is-active" title="左下"></button>
+                <button type="button" data-anchor="bottom-center" title="下中"></button>
+                <button type="button" data-anchor="bottom-right" title="右下"></button>
+              </div>
+            </div>
+            <label class="input-label">logo 大小 <span class="range-value" id="wm-logo-val">14%</span>
+              <input id="wm-logo-size" type="range" min="2" max="40" step="1" value="14">
+            </label>
+          </div>
+          <div class="wm-row">
+            <label class="input-label">logo 边距 <span class="range-value" id="wm-logo-inset-val">3%</span>
+              <input id="wm-logo-inset" type="range" min="0" max="12" step="0.5" value="3">
+            </label>
+            <label class="input-label">logo 不透明度 <span class="range-value" id="wm-logo-opacity-val">85%</span>
+              <input id="wm-logo-opacity" type="range" min="10" max="100" step="5" value="85">
+            </label>
+          </div>
+          <div class="wm-preview-wrap"><canvas id="wm-preview" width="640" height="400"></canvas></div>
+          <p class="field-help" id="wm-note">预览用当前范围里第一张能解码的照片；RAW 与无法解码的文件会按原图复制，不加印章。</p>
+        </div>
+      </div>
+
+      <div class="export-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.4-2.9 8.1-7 9.3-4.1-1.2-7-4.9-7-9.3V6z"/><path d="m9 12 2 2 4-4"/></svg>
+        全部处理都在本机浏览器内完成，照片不会上传。
+      </div>
+    </div>
+
+    <footer class="modal-foot">
+      <span class="foot-hint" id="export-foot-hint">复制模式保留原始文件与画质</span>
+      <div class="foot-actions">
+        <button class="text-btn" id="export-zip" type="button">改为打包 ZIP 下载</button>
+        <button class="btn btn-ghost" id="export-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="export-go" type="button">选择文件夹并导出</button>
+      </div>
+    </footer>
+
+    <div class="export-progress" id="export-progress" hidden>
+      <div class="export-progress-inner">
+        <div class="spinner" id="export-spinner"></div>
+        <span class="export-progress-icon" id="export-progress-icon" hidden>✓</span>
+        <strong id="export-progress-title">正在导出…</strong>
+        <p id="export-progress-sub">0 / 0</p>
+        <div class="progress"><span id="export-progress-bar"></span></div>
+        <div class="export-progress-actions">
+          <button class="text-btn" id="export-stop" type="button">停止</button>
+          <button class="btn btn-primary btn-sm" id="export-done" type="button">完成</button>
+        </div>
+        <p class="export-failures" id="export-failures"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="help-modal" hidden>
+  <div class="modal help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> GUIDE</p>
+        <h2 id="help-title">选片台使用说明</h2>
+      </div>
+      <button class="icon-btn" id="help-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body help-body">
+      <section class="help-intro">
+        <h3>像 Lightroom 图库一样过片</h3>
+        <p>打开文件夹后，用方向键移动、<kbd>P</kbd> 留用、<kbd>X</kbd> 淘汰，不需要碰鼠标。标记会即时计入左侧筛选；<kbd>Space</kbd> 放大检查细节，<kbd>Ctrl E</kbd> 一次导出。</p>
+      </section>
+
+      <section class="shortcut-table">
+        <h4>浏览</h4>
+        <div class="shortcut-grid">
+          <div><span>移动焦点</span><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></span></div>
+          <div><span>放大 / 返回网格</span><span><kbd>Space</kbd> / <kbd>Esc</kbd></span></div>
+          <div><span>上一张 / 下一张</span><span><kbd>←</kbd><kbd>→</kbd></span></div>
+          <div><span>适应画面 / 100%</span><span><kbd>Z</kbd></span></div>
+          <div><span>全屏</span><span><kbd>F</kbd></span></div>
+          <div><span>缩略图大小</span><span><kbd>[</kbd><kbd>]</kbd></span></div>
+          <div><span>重新扫描文件夹</span><span><kbd>R</kbd></span></div>
+        </div>
+      </section>
+
+      <section class="shortcut-table">
+        <h4>标记</h4>
+        <div class="shortcut-grid">
+          <div><span>留用</span><span><kbd>P</kbd></span></div>
+          <div><span>淘汰</span><span><kbd>X</kbd></span></div>
+          <div><span>取消标记（待定）</span><span><kbd>U</kbd></span></div>
+          <div><span>星级 0–5</span><span><kbd>0</kbd>…<kbd>5</kbd></span></div>
+          <div><span>红 / 黄 / 绿 / 蓝</span><span><kbd>6</kbd><kbd>7</kbd><kbd>8</kbd><kbd>9</kbd></span></div>
+          <div><span>多选 / 连选</span><span><kbd>Ctrl</kbd> 点击 / <kbd>Shift</kbd> 点击</span></div>
+        </div>
+      </section>
+
+      <section class="shortcut-table">
+        <h4>筛选与导出</h4>
+        <div class="shortcut-grid">
+          <div><span>搜索文件名</span><span><kbd>Ctrl F</kbd></span></div>
+          <div><span>全选当前筛选</span><span><kbd>Ctrl A</kbd></span></div>
+          <div><span>批量导出</span><span><kbd>Ctrl E</kbd></span></div>
+          <div><span>清除搜索 / 筛选</span><span><kbd>Esc</kbd></span></div>
+        </div>
+      </section>
+
+      <section class="help-notes">
+        <h4>项目分拣：一次过完一整场展会</h4>
+        <ul>
+          <li>「新建项目」先选父文件夹，填项目名与客户名，工具会建好 <code>展会A/客户1/</code> 等文件夹，并把项目状态写进 <code>.furix-project.json</code>。下次用「打开项目」选这个文件夹即可继续。</li>
+          <li>再点「选择 SD 卡根目录」：A/B/C/D 等子目录的照片会一起读进来并按文件名配对 JPG + RAW，SD 卡只读，不会被改动。</li>
+          <li>「场次与客户」按拍摄时间划时间段并指派客户。改了开始/结束时间，照片归属会自动重算；自动建议只是起点，随时可以手动改。</li>
+          <li>在网格空白处按住鼠标拖出选框即可框选（<kbd>Ctrl</kbd>/<kbd>Shift</kbd> 拖为追加），再配合 <kbd>P</kbd> 标记。</li>
+          <li>「按客户导出」可选当前筛选 / 所选 / 全部已分客户，只勾 JPG 用于发客户初筛，只勾 RAW 并选「客户/选图集」用于进 Lightroom。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>客户回传：编号 → 选图集</h4>
+        <ul>
+          <li>客户回 <code>PANA9034</code>、<code>9034</code>、或只回后几位 <code>034</code> 都认；按<strong>他自己那批文件名</strong>匹配，同一串数字在不同客户那里指向不同照片。</li>
+          <li>同一个后缀在他那批里对上多张时会列候选让你点，没确认的不写盘；缺号会列出来，若这个号出现在别的客户清单里会提示你。</li>
+          <li>默认只把 RAW 复制进 <code>客户X/选图集/</code>，可勾选同时复制 JPG；回传过的照片在网格里带「回」角标。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>成品集 / 打包 / 台账</h4>
+        <ul>
+          <li>客户回传后自动建好 <code>客户X/成品集/</code>，LR 直接往这里导出。</li>
+          <li>「打包交付」会扫描底片（初筛 JPG）、选（回传 RAW）、成品三组数字；成品比回传少就拦住，勾「照打」才能继续。</li>
+          <li>包名 <code>展会名_客户名.zip</code>，扁平结构，放到 <code>项目/交付/</code>；重打即覆盖。</li>
+          <li>台账写在项目父文件夹的 <code>交付台账.csv</code>，单号按年、按类型（订单/玩拍）分开计数；「台账统计」里能看到今年单数、底片、成品和每个项目的明细。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>省空间：清交付包 / 往年归档</h4>
+        <ul>
+          <li>交付面板底部能勾选删除 <code>交付/</code> 里的 zip，腾出空间；「已交付」记录保留，行内标「包已清理」，随时可重打。</li>
+          <li>「归档 / 恢复」先把客户素材打进 <code>客户X/归档.zip</code>（不压缩、保目录结构），逐条校验文件名与大小后才允许删原图。</li>
+          <li>删原图要连点两次确认；删了之后用「恢复」可以解回原处，项目里的客户、场次、单号都还在。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>散片 / 直出 / 水印</h4>
+        <ul>
+          <li>不成套、不算订单的活不用建项目：直接「快速选片」打开文件夹 → 选 → <kbd>Ctrl E</kbd> 导出，不占单号也不进台账。</li>
+          <li>导出对话框勾「导出时加水印」：文字和 logo 可单选或并用，位置九宫格 + 边距 + 大小 + 不透明度，带实时预览。</li>
+          <li>加水印会重新编码成 JPEG（复制原图、WebP 会被禁用），EXIF 不保留；RAW 等无法解码的文件按原图复制并提示张数。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>重复照片</h4>
+        <ul>
+          <li>同名（<code>-2</code>、<code>(1)</code>、<code> 副本</code> 会被剥掉）+ 同样大小 → 认定同一张；大小不同不算。</li>
+          <li>筛选栏「隐藏重复」每组只留最外层、无后缀的那张；角标 <code>重 N</code> 标出重复组。</li>
+          <li><strong>完全同名</strong>的副本共享标记：给外面那张按 <kbd>P</kbd> 或打星，子目录那张自动跟着变；<code>-2</code> 副本不参与同步。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>接入旧项目</h4>
+        <ul>
+          <li>项目已经按客户分好文件夹、但没有项目文件时，用空白页的「接入已有项目」。</li>
+          <li>自动扫出客户、项目名/类型/日期、每个客户的底片·选·成品张数；成品集里有图就默认标为「已交付」（交付包删了也算）。</li>
+          <li>可以选「不计入台账」或「从第 N 单开始补进今年台账」；接入只新建项目文件，不动照片。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>EXIF 与分类</h4>
+        <ul>
+          <li>选中照片后，检查器显示机身、镜头、焦段（含 35mm 等效）、光圈、快门、ISO 与拍摄时间。</li>
+          <li>侧栏「EXIF 分类」可按机身、镜头、焦段、光圈筛选；排序菜单支持拍摄时间、焦段和光圈。打开文件夹后会在后台读取 EXIF，未识别到的照片归入「未知」。</li>
+        </ul>
+      </section>
+
+      <section class="help-notes">
+        <h4>关于文件</h4>
+        <ul>
+          <li>支持预览 JPG、PNG、WebP、AVIF、GIF、BMP 等格式。RAW 会自动提取文件内嵌的 JPEG 预览用于选片，不修改原图；提取不到时显示占位，仍可照常打标记。HEIC、TIFF 不能预览，但可以打标记并复制原文件。</li>
+          <li>标记会自动保存在浏览器，并在可写时写入照片目录的 <code>.furix-catalog.json</code>，下次打开同名图库自动恢复。</li>
+          <li>直接写文件夹需要 Chrome / Edge 的文件夹授权。其他浏览器会自动改为打包 ZIP 下载。</li>
+          <li>导出 JPEG / WebP 时按长边缩放，原图不会被修改；RAW 始终按原文件复制，避免用内嵌预览降级画质。XMP 标记文件会与照片同名放在一起。</li>
+        </ul>
+      </section>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint">FURIX SELECTS · v3.7 · 本地优先的选片工作流</span>
+      <div class="foot-actions"><button class="btn btn-primary" id="help-ok" type="button">开始选片</button></div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="project-modal" hidden>
+  <div class="modal project-modal" role="dialog" aria-modal="true" aria-labelledby="project-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> PROJECT</p>
+        <h2 id="project-title">新建项目</h2>
+      </div>
+      <button class="icon-btn" id="project-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="field two-col">
+        <label class="input-label">类型
+          <span class="select-wrap full">
+            <select id="project-type">
+              <option value="order">订单（A）</option>
+              <option value="fun">玩拍（B）</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </span>
+        </label>
+        <label class="input-label">拍摄日期
+          <input id="project-date" type="date">
+        </label>
+      </div>
+      <div class="field two-col">
+        <label class="input-label">名字
+          <input id="project-name" type="text" value="" placeholder="例如 得闲" maxlength="30" spellcheck="false" autocomplete="off">
+        </label>
+        <div class="input-label">保存位置
+          <button class="btn btn-ghost project-parent-btn" id="project-parent" type="button">选择父文件夹</button>
+          <span class="project-parent-name" id="project-parent-name">未选择</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="input-label">客户文件夹
+          <input id="project-clients" type="text" value="客户1, 客户2, 客户3, 客户4" spellcheck="false" autocomplete="off">
+        </label>
+        <p class="field-help">用逗号分隔，之后可以用「客户改名」改成真实客户名。工具会创建 <code>项目名/客户名/</code>。</p>
+      </div>
+      <div class="project-create-note">
+        <strong>会创建</strong>
+        <span id="project-preview-path">A10.31得闲 / 客户1 · 客户2 · 客户3 · 客户4</span>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint">项目状态保存在项目目录的 .furix-project.json</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="project-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="project-create" type="button">选择父文件夹并创建</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="sessions-modal" hidden>
+  <div class="modal sessions-modal" role="dialog" aria-modal="true" aria-labelledby="sessions-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> SESSIONS</p>
+        <h2 id="sessions-title">场次与客户</h2>
+      </div>
+      <button class="icon-btn" id="sessions-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="session-tools">
+        <label class="session-param">大场次间隔
+          <input id="session-gap" type="number" min="5" max="180" step="5" value="30"> 分钟
+        </label>
+        <label class="session-param">最少张数
+          <input id="session-min" type="number" min="1" max="200" step="1" value="15">
+        </label>
+        <button class="btn btn-ghost btn-sm" id="session-auto" type="button">自动建议场次</button>
+        <button class="btn btn-ghost btn-sm" id="session-add" type="button">+ 手动场次</button>
+      </div>
+      <p class="field-help">修改开始/结束时间会重新计算照片。场次之间不能重叠。客户归属在这里设置。</p>
+      <div class="session-rows" id="session-rows"></div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="session-summary">0 场</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="sessions-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="sessions-save" type="button">保存场次</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="project-export-modal" hidden>
+  <div class="modal project-export-modal" role="dialog" aria-modal="true" aria-labelledby="project-export-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> PROJECT EXPORT</p>
+        <h2 id="project-export-title">按客户导出</h2>
+      </div>
+      <button class="icon-btn" id="project-export-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="field">
+        <div class="field-head"><span class="field-label">范围</span><span class="field-note" id="pe-note"></span></div>
+        <div class="seg" id="pe-scope" role="group" aria-label="导出范围">
+          <button type="button" data-scope="view" class="is-active">当前筛选</button>
+          <button type="button" data-scope="selected">所选</button>
+          <button type="button" data-scope="all">全部已分客户</button>
+        </div>
+      </div>
+      <div class="field two-col">
+        <label class="input-label">客户
+          <span class="select-wrap full">
+            <select id="pe-client"></select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </span>
+        </label>
+        <label class="input-label">输出到
+          <span class="select-wrap full">
+            <select id="pe-target">
+              <option value="root">客户文件夹根目录</option>
+              <option value="selection">客户/选图集</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </span>
+        </label>
+      </div>
+      <div class="field">
+        <span class="field-label">复制类型</span>
+        <div class="pe-types">
+          <label class="check"><input type="checkbox" id="pe-jpg" checked><span class="check-box"></span><span class="check-text">JPG</span></label>
+          <label class="check"><input type="checkbox" id="pe-raw"><span class="check-box"></span><span class="check-text">RAW</span></label>
+        </div>
+        <p class="field-help">初筛一般只勾 JPG；后续要进 LR 时再勾 RAW 导出到“选图集”。</p>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint">自动创建客户文件夹；重名自动加后缀</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="pe-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="pe-start" type="button">开始导出</button>
+      </div>
+    </footer>
+    <div class="export-progress" id="pe-progress" hidden>
+      <div class="export-progress-inner">
+        <div class="spinner" id="pe-spinner"></div>
+        <span class="export-progress-icon" id="pe-icon" hidden>✓</span>
+        <strong id="pe-progress-title">正在导出…</strong>
+        <p id="pe-progress-sub"></p>
+        <div class="progress"><span id="pe-bar"></span></div>
+        <div class="export-progress-actions">
+          <button class="text-btn" id="pe-stop" type="button">停止</button>
+          <button class="btn btn-primary btn-sm" id="pe-done" type="button" hidden>完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="returns-modal" hidden>
+  <div class="modal returns-modal" role="dialog" aria-modal="true" aria-labelledby="returns-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> CLIENT SELECTS</p>
+        <h2 id="returns-title">客户回传</h2>
+      </div>
+      <button class="icon-btn" id="returns-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="field">
+        <div class="field-head"><span class="field-label">匹配方式</span><span class="field-note" id="returns-source-note"></span></div>
+        <p class="field-help">按每个客户自己那份文件名认：完整名（<code>PANA9034</code>）、纯数字（<code>9034</code>）、或后几位（<code>034</code>）都行。逗号、空格、换行、<code>9038-9042</code> 都能贴。写盘前会先显示匹配、缺号与歧义。</p>
+      </div>
+      <div class="field return-options">
+        <label class="check"><input type="checkbox" id="return-jpg"><span class="check-box"></span><span class="check-text">同时复制 JPG（默认只复制 RAW）</span></label>
+      </div>      <div class="return-rows" id="return-rows"></div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="return-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="returns-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="returns-start" type="button">写入 选图集</button>
+      </div>
+    </footer>
+    <div class="export-progress" id="return-progress" hidden>
+      <div class="export-progress-inner">
+        <div class="spinner" id="return-spinner"></div>
+        <span class="export-progress-icon" id="return-icon" hidden>✓</span>
+        <strong id="return-progress-title">正在写入…</strong>
+        <p id="return-progress-sub"></p>
+        <div class="progress"><span id="return-bar"></span></div>
+        <div class="export-progress-actions">
+          <button class="text-btn" id="return-stop" type="button">停止</button>
+          <button class="btn btn-primary btn-sm" id="return-done" type="button" hidden>完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="delivery-modal" hidden>
+  <div class="modal delivery-modal" role="dialog" aria-modal="true" aria-labelledby="delivery-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> DELIVERY</p>
+        <h2 id="delivery-title">成品集 / 打包交付</h2>
+      </div>
+      <button class="icon-btn" id="delivery-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="field-head"><span class="field-label">交付包</span><span class="field-note" id="delivery-note"></span></div>
+      <p class="field-help">底片 = 初筛 JPG，选 = 客户回传的 RAW，成品 = <code>成品集/</code> 里的图片。打包是扁平 zip，放到 <code>项目/交付/</code>，重打覆盖旧包。</p>
+      <div class="delivery-rows" id="delivery-rows"></div>
+      <div class="delivery-force-field">
+        <label class="check"><input type="checkbox" id="delivery-force"><span class="check-box"></span><span class="check-text">数量对不上也照打（跳过对账）</span></label>
+      </div>
+      <div class="field-head pack-head"><span class="field-label">交付包</span><span class="field-note" id="pack-note">—</span></div>
+      <p class="field-help">已经打完、也已经发给客户的包可以在这里删掉，腾出空间；「已交付」记录会保留，随时能从成品集重打。</p>
+      <div class="pack-list" id="pack-list"></div>
+      <div class="pack-actions">
+        <label class="check"><input type="checkbox" id="pack-all"><span class="check-box"></span><span class="check-text">全选</span></label>
+        <button class="btn btn-ghost btn-sm" id="pack-delete" type="button">删除所选</button>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="delivery-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="delivery-refresh" type="button">刷新扫描</button>
+        <button class="btn btn-ghost" id="delivery-cancel" type="button">关闭</button>
+        <button class="btn btn-primary" id="delivery-start" type="button">全部打包</button>
+      </div>
+    </footer>
+    <div class="export-progress" id="delivery-progress" hidden>
+      <div class="export-progress-inner">
+        <div class="spinner" id="delivery-spinner"></div>
+        <span class="export-progress-icon" id="delivery-icon" hidden>✓</span>
+        <strong id="delivery-progress-title">正在打包…</strong>
+        <p id="delivery-progress-sub"></p>
+        <div class="progress"><span id="delivery-bar"></span></div>
+        <div class="export-progress-actions">
+          <button class="text-btn" id="delivery-stop" type="button">停止</button>
+          <button class="btn btn-primary btn-sm" id="delivery-done" type="button" hidden>完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="ledger-modal" hidden>
+  <div class="modal ledger-modal" role="dialog" aria-modal="true" aria-labelledby="ledger-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> LEDGER</p>
+        <h2 id="ledger-title">台账统计</h2>
+      </div>
+      <button class="icon-btn" id="ledger-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="ledger-cards" id="ledger-cards"></div>
+      <div class="ledger-project" id="ledger-project"></div>
+      <div class="ledger-table" id="ledger-table"></div>
+      <p class="field-help" id="ledger-hint"></p>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="ledger-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="ledger-pick" type="button">选择台账文件夹</button>
+        <button class="btn btn-ghost" id="ledger-refresh" type="button">刷新</button>
+        <button class="btn btn-primary" id="ledger-ok" type="button">关闭</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="clients-modal" hidden>
+  <div class="modal clients-modal" role="dialog" aria-modal="true" aria-labelledby="clients-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> CLIENTS</p>
+        <h2 id="clients-title">客户改名</h2>
+      </div>
+      <button class="icon-btn" id="clients-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <p class="field-help">交付包名会用这里的名字（<code>展会名_客户名.zip</code>）。客户文件夹只有还是空的时候才会跟着改名，已经有文件就不动它。</p>
+      <div class="client-edit-rows" id="client-edit-rows"></div>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="clients-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="clients-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="clients-save" type="button">保存</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adopt-modal" hidden>
+  <div class="modal adopt-modal" role="dialog" aria-modal="true" aria-labelledby="adopt-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> ADOPT</p>
+        <h2 id="adopt-title">接入已有项目</h2>
+      </div>
+      <button class="icon-btn" id="adopt-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="adopt-head">
+        <label class="input-label">项目名
+          <input id="adopt-code" type="text" maxlength="40" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="input-label">类型
+          <span class="select-wrap full">
+            <select id="adopt-type">
+              <option value="order">订单（A）</option>
+              <option value="fun">玩拍（B）</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+          </span>
+        </label>
+        <label class="input-label">拍摄日期
+          <input id="adopt-date" type="date">
+        </label>
+      </div>
+      <p class="field-help">扫描出来的客户文件夹如下。「已交付」表示这一单的成品已经发过客户（哪怕交付包已经删掉）；工具会按成品集里的文件补一条交付记录，并把单号补进台账。</p>
+      <div class="adopt-rows" id="adopt-rows"></div>
+      <div class="adopt-ledger">
+        <label class="check"><input type="radio" name="adopt-ledger" value="none" checked><span class="check-box"></span><span class="check-text">不计入台账（历史项目）</span></label>
+        <label class="check"><input type="radio" name="adopt-ledger" value="backfill"><span class="check-box"></span><span class="check-text">补进今年台账，从第 <input id="adopt-seq" type="number" min="1" max="999" value="1"> 单开始，按上面顺序分配</span></label>
+      </div>
+      <p class="field-help" id="adopt-hint">只新建 <code>.furix-project.json</code>，不会动任何照片。</p>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="adopt-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="adopt-all" type="button">全部标为已交付</button>
+        <button class="btn btn-ghost" id="adopt-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="adopt-confirm" type="button">接入并打开</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="archive-modal" hidden>
+  <div class="modal archive-modal" role="dialog" aria-modal="true" aria-labelledby="archive-title">
+    <header class="modal-head">
+      <div>
+        <p class="eyebrow"><span></span> ARCHIVE</p>
+        <h2 id="archive-title">归档 / 恢复</h2>
+      </div>
+      <button class="icon-btn" id="archive-close" type="button" aria-label="关闭">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="archive-contents">
+        <span class="field-label">本次归档包含</span>
+        <label class="check"><input type="checkbox" id="arc-negatives" checked><span class="check-box"></span><span class="check-text">底片 JPG</span></label>
+        <label class="check"><input type="checkbox" id="arc-raws" checked><span class="check-box"></span><span class="check-text">选图集 RAW</span></label>
+        <label class="check"><input type="checkbox" id="arc-products" checked><span class="check-box"></span><span class="check-text">成品集</span></label>
+        <label class="check"><input type="checkbox" id="arc-packs"><span class="check-box"></span><span class="check-text">交付 zip</span></label>
+      </div>
+      <p class="field-help">归档包写到 <code>客户X/归档.zip</code>，只校目录、不压缩。写完后会逐条核对文件名与大小，通过后才允许删原图；删了还能用「恢复」解回原处。</p>
+      <div class="archive-rows" id="archive-rows"></div>
+      <p class="field-help" id="archive-note"></p>
+    </div>
+    <footer class="modal-foot">
+      <span class="foot-hint" id="archive-summary">—</span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="archive-refresh" type="button">刷新扫描</button>
+        <button class="btn btn-ghost" id="archive-ok" type="button">关闭</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="drop-overlay" id="drop-overlay" hidden>
+  <div class="drop-inner">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5"/><path d="m7.5 9.5 4.5-4.5 4.5 4.5"/><path d="M5 19h14"/></svg>
+    </div>
+    <strong>松开，开始读片</strong>
+    <span>可以拖入整个文件夹或一批照片</span>
+  </div>
+</div>
+
+<div class="toast-stack" id="toasts" aria-live="polite"></div>
+
+<input type="file" id="file-input" webkitdirectory multiple hidden>
+<input type="file" id="json-input" accept="application/json,.json" hidden>
+
+<script src="js/core.js?v=v37"></script>
+<script src="js/app.js?v=v37"></script>
+</body>
+</html>

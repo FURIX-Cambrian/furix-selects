@@ -1,0 +1,15 @@
+# 运行期文件（每次启动会重新生成）
+.server.json
+.server.log
+.server.err.log
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# 打包产物（用 Releases 分发，不进仓库）
+*.zip
