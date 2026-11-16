@@ -4660,20 +4660,20 @@ input[type="range"]::-moz-range-thumb {
 .hub-brand {
   color: var(--text);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12.5px;
   letter-spacing: 0.18em;
 }
 
 .hub-note {
   color: var(--faint);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.02em;
 }
 
 .hub-demo {
   margin-left: auto;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 10px;
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: rgba(255, 255, 255, 0.14);
@@ -4690,9 +4690,9 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .hub-actions .btn {
-  height: 32px;
-  padding: 0 14px;
-  font-size: 10.5px;
+  height: 34px;
+  padding: 0 15px;
+  font-size: 11.5px;
 }
 
 .hub-recent {
@@ -4705,7 +4705,7 @@ input[type="range"]::-moz-range-thumb {
 
 .hub-recent-label {
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 9.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -4720,8 +4720,8 @@ input[type="range"]::-moz-range-thumb {
   display: grid;
   grid-template-columns: auto auto 1fr auto auto;
   align-items: center;
-  gap: 10px;
-  padding: 9px 8px;
+  gap: 11px;
+  padding: 10px 8px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -4732,14 +4732,14 @@ input[type="range"]::-moz-range-thumb {
 
 .hub-row-name {
   color: var(--text-2);
-  font-size: 10.5px;
+  font-size: 12px;
   font-family: var(--mono);
   letter-spacing: 0.02em;
 }
 
 .hub-row.is-main .hub-row-name {
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 13px;
 }
 
 .hub-row-type {
@@ -4747,7 +4747,7 @@ input[type="range"]::-moz-range-thumb {
   border: 1px solid var(--line);
   border-radius: 3px;
   color: var(--faint);
-  font-size: 7.5px;
+  font-size: 8.5px;
   line-height: 1.4;
 }
 
@@ -4756,7 +4756,7 @@ input[type="range"]::-moz-range-thumb {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .hub-row.is-main .hub-row-stats {
@@ -4765,7 +4765,7 @@ input[type="range"]::-moz-range-thumb {
 
 .hub-row-time {
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-family: var(--mono);
   white-space: nowrap;
 }
@@ -5167,4 +5167,59 @@ input[type="range"]::-moz-range-thumb {
   color: var(--faint);
   font-family: var(--mono);
   font-size: 8.5px;
+}
+
+/* 首页最近项目：最新一条带环形交付进度，其余行只留数据 */
+.hub-row {
+  grid-template-columns: 34px auto auto 1fr auto auto;
+}
+
+.hub-ring-slot {
+  display: grid;
+  width: 34px;
+  place-items: center;
+}
+
+.hub-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.hub-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.hub-ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 2.6;
+}
+
+.hub-ring-bar {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hub-ring-num {
+  position: relative;
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.hub-row.is-main .hub-ring-num {
+  color: var(--text);
 }
